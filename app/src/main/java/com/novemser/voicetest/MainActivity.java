@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -50,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
      * 适配器
      */
     private ListMessageAdapter mAdapter;
+    //
+    private Button mStartVoiceRecord;
 
     // 语音听写对象
     private SpeechRecognizer mIat;
@@ -98,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
             public void onResult(RecognizerResult recognizerResult, boolean b) {
                 Log.d("Voice", recognizerResult.getResultString());
                 printResult(recognizerResult);
+                sendMessage(mStartVoiceRecord);
             }
 
             @Override
@@ -105,13 +109,22 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        //4.显示dialog，接收语音输入
-        mDialog.show();
+
+        // 4.设置语音按钮
+        mStartVoiceRecord.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //显示dialog，接收语音输入
+                mDialog.show();
+            }
+        });
+
     }
 
     private void initView() {
         mChatView = (ListView) findViewById(R.id.id_chat_listView);
         mMsg = (EditText) findViewById(R.id.id_chat_msg);
+        mStartVoiceRecord = (Button) findViewById(R.id.btn_voice_input);
         mDatas.add(new ChatMessage(ChatMessage.Type.INPUT,
                 "我是同小基，您的个人助理，我可是我济最帅的语音小助手~"));
     }

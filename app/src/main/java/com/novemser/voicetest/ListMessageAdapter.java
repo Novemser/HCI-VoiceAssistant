@@ -82,7 +82,7 @@ public class ListMessageAdapter extends BaseAdapter {
         }
 
         viewHolder.content.setText(chatMessage.getMsg());
-        viewHolder.createDate.setText(chatMessage.getDateStr());
+//        viewHolder.createDate.setText(chatMessage.getDateStr());
 
         return convertView;
     }
