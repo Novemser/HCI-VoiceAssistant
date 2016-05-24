@@ -15,7 +15,7 @@
         android:layout_width="fill_parent"
         android:layout_height="55dp"
         android:layout_alignParentBottom="true"
-        android:background="#000000" >
+        android:background="#333333" >
 
         <Button
             android:id="@+id/id_chat_send"
