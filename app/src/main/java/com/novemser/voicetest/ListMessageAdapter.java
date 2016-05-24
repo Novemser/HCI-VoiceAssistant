@@ -61,17 +61,12 @@ public class ListMessageAdapter extends BaseAdapter {
             if (chatMessage.getType() == ChatMessage.Type.INPUT) {
                 convertView = mInflater.inflate(R.layout.main_chat_from_msg,
                         parent, false);
-                viewHolder.createDate = (TextView) convertView
-                        .findViewById(R.id.chat_from_createDate);
                 viewHolder.content = (TextView) convertView
                         .findViewById(R.id.chat_from_content);
                 convertView.setTag(viewHolder);
             } else {
                 convertView = mInflater.inflate(R.layout.main_chat_send_msg,
                         null);
-
-                viewHolder.createDate = (TextView) convertView
-                        .findViewById(R.id.chat_send_createDate);
                 viewHolder.content = (TextView) convertView
                         .findViewById(R.id.chat_send_content);
                 convertView.setTag(viewHolder);
@@ -82,7 +77,6 @@ public class ListMessageAdapter extends BaseAdapter {
         }
 
         viewHolder.content.setText(chatMessage.getMsg());
-//        viewHolder.createDate.setText(chatMessage.getDateStr());
 
         return convertView;
     }

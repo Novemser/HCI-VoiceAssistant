@@ -1,6 +1,9 @@
 package com.novemser.voicetest;
 
 import android.content.Context;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
@@ -21,13 +24,16 @@ import com.iflytek.cloud.RecognizerResult;
 import com.iflytek.cloud.SpeechConstant;
 import com.iflytek.cloud.SpeechError;
 import com.iflytek.cloud.SpeechRecognizer;
+import com.iflytek.cloud.SpeechSynthesizer;
 import com.iflytek.cloud.SpeechUtility;
+import com.iflytek.cloud.SynthesizerListener;
 import com.iflytek.cloud.ui.RecognizerDialog;
 import com.iflytek.cloud.ui.RecognizerDialogListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -51,8 +57,9 @@ public class MainActivity extends AppCompatActivity {
      * 适配器
      */
     private ListMessageAdapter mAdapter;
-    //
     private Button mStartVoiceRecord;
+    private SpeechSynthesizer speechSynthesizer;
+    private MediaPlayer mediaPlayer;
 
     // 语音听写对象
     private SpeechRecognizer mIat;
@@ -68,6 +75,19 @@ public class MainActivity extends AppCompatActivity {
             mDatas.add(from);
             mAdapter.notifyDataSetChanged();
             mChatView.setSelection(mDatas.size() - 1);
+            speechSynthesizer.startSpeaking(from.getMsg(), mSynListener);
+            // Google TTS cannot be used!!!
+//            s += ".mp3";
+//            s = "http://translate.google.cn/translate_tts?ie=UTF-8&q=%E6%88%91%E5%8B%92%E4%B8%AA%E5%8E%BB&tl=zh-CN&total=1&idx=0&textlen=4&tk=743200.877443&client=t&prev=input&ttsspeed=2.24";
+//            MediaPlayer mediaPlayer = new MediaPlayer();
+//            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+//            try {
+//                mediaPlayer.setDataSource(s);
+//                mediaPlayer.prepare(); // might take long! (for buffering, etc)
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//            mediaPlayer.start();
         }
 
     };
@@ -118,8 +138,54 @@ public class MainActivity extends AppCompatActivity {
                 mDialog.show();
             }
         });
+        initTTS();
 
     }
+
+    private void initTTS() {
+        speechSynthesizer = SpeechSynthesizer.createSynthesizer(this, null);
+        speechSynthesizer.setParameter(SpeechConstant.VOICE_NAME, "xiaoqi");
+        speechSynthesizer.setParameter(SpeechConstant.SPEED, "60");
+        speechSynthesizer.setParameter(SpeechConstant.VOLUME, "80");
+        speechSynthesizer.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD);
+//        speechSynthesizer.setParameter(SpeechConstant.STREAM_TYPE, "3");
+    }
+
+    private SynthesizerListener mSynListener = new SynthesizerListener() {
+        @Override
+        public void onSpeakBegin() {
+        }
+
+        @Override
+        public void onBufferProgress(int i, int i1, int i2, String s) {
+
+        }
+
+        @Override
+        public void onSpeakPaused() {
+
+        }
+
+        @Override
+        public void onSpeakResumed() {
+
+        }
+
+        @Override
+        public void onSpeakProgress(int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void onCompleted(SpeechError speechError) {
+
+        }
+
+        @Override
+        public void onEvent(int i, int i1, int i2, Bundle bundle) {
+
+        }
+    };
 
     private void initView() {
         mChatView = (ListView) findViewById(R.id.id_chat_listView);
@@ -192,6 +258,23 @@ public class MainActivity extends AppCompatActivity {
 
         mMsg.setText(resultBuffer.toString());
         mMsg.setSelection(mMsg.length());
+    }
+    /**
+     * 创建网络mp3
+     * @return
+     */
+    public MediaPlayer createNetMp3(String url){
+        MediaPlayer mp = new MediaPlayer();
+        try {
+            mp.setDataSource(url);
+        } catch (IllegalArgumentException e) {
+            return null;
+        } catch (IllegalStateException e) {
+            return null;
+        } catch (IOException e) {
+            return null;
+        }
+        return mp;
     }
 
 }
