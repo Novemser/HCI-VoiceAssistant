@@ -59,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
     private ListMessageAdapter mAdapter;
     private Button mStartVoiceRecord;
     private SpeechSynthesizer speechSynthesizer;
-    private MediaPlayer mediaPlayer;
 
     // 语音听写对象
     private SpeechRecognizer mIat;
@@ -77,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
             mChatView.setSelection(mDatas.size() - 1);
             speechSynthesizer.startSpeaking(from.getMsg(), mSynListener);
             // Google TTS cannot be used!!!
-//            s += ".mp3";
 //            s = "http://translate.google.cn/translate_tts?ie=UTF-8&q=%E6%88%91%E5%8B%92%E4%B8%AA%E5%8E%BB&tl=zh-CN&total=1&idx=0&textlen=4&tk=743200.877443&client=t&prev=input&ttsspeed=2.24";
 //            MediaPlayer mediaPlayer = new MediaPlayer();
 //            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
