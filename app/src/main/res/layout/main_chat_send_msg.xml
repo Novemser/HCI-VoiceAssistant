@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_margin="20dp"
+        android:layout_height="wrap_content" >
+
+        <LinearLayout
+            android:id="@+id/ly_chat_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginLeft="10dp"
+            android:orientation="vertical" >
+
+            <ImageView
+                android:id="@+id/chat_send_icon"
+                android:layout_width="57dp"
+                android:layout_height="57dp"
+                android:src="@drawable/head1" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/chat_send_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/chat_to"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:lineSpacingExtra="2dp"
+            android:minHeight="50dp"
+            android:textColor="#ffffff"
+            android:textSize="16sp"
+            android:layout_alignParentTop="true"
+            android:layout_toLeftOf="@+id/ly_chat_icon"
+            android:layout_toStartOf="@+id/ly_chat_icon" />
+    </RelativeLayout>
+
+</LinearLayout>
