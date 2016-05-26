@@ -32,6 +32,8 @@ import com.iflytek.cloud.SynthesizerListener;
 import com.iflytek.cloud.TextUnderstander;
 import com.iflytek.cloud.TextUnderstanderListener;
 import com.iflytek.cloud.UnderstanderResult;
+import com.iflytek.cloud.SpeechUtility;
+import com.iflytek.cloud.SynthesizerListener;
 import com.iflytek.cloud.ui.RecognizerDialog;
 import com.iflytek.cloud.ui.RecognizerDialogListener;
 
@@ -153,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
     private TextUnderstanderListener textUnderstanderListener = new TextUnderstanderListener() {
         @Override
         public void onResult(UnderstanderResult understanderResult) {
-
+            Log.d("Understanding result", understanderResult.getResultString());
         }
 
         @Override
