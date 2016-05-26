@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/HCI-VoiceAssistant-master.iml" filepath="$PROJECT_DIR$/HCI-VoiceAssistant-master.iml" />
+      <module fileurl="file://$PROJECT_DIR$/VoiceTest.iml" filepath="$PROJECT_DIR$/VoiceTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

@@ -4,6 +4,7 @@ package com.novemser.voicetest;
  * Created by Novemser on 5/24/2016.
  */
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -96,5 +97,27 @@ public class JsonParser {
             ret.append("没有匹配结果.");
         }
         return ret.toString();
+    }
+
+    public static String parseSemanticResult(String json) {
+        try {
+            JSONTokener tokener = new JSONTokener(json);
+            JSONObject joResult = new JSONObject(tokener);
+
+            JSONObject semantic = joResult.getJSONObject("semantic");
+            if (semantic.has("slots")) {
+                JSONObject slots = semantic.getJSONObject("slots");
+                if (slots.has("name")) {
+                    return slots.getString("name");
+                } else if (slots.has("code")) {
+                    return slots.getString("code");
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }

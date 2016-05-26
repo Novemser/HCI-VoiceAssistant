@@ -20,6 +20,8 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.iflytek.cloud.ErrorCode;
+import com.iflytek.cloud.LexiconListener;
 import com.iflytek.cloud.RecognizerResult;
 import com.iflytek.cloud.SpeechConstant;
 import com.iflytek.cloud.SpeechError;
@@ -36,6 +38,9 @@ import com.iflytek.cloud.SpeechUtility;
 import com.iflytek.cloud.SynthesizerListener;
 import com.iflytek.cloud.ui.RecognizerDialog;
 import com.iflytek.cloud.ui.RecognizerDialogListener;
+import com.iflytek.cloud.util.ContactManager;
+import com.novemser.voicetest.actions.BaseAction;
+import com.novemser.voicetest.actions.CallAction;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -46,6 +51,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
     /**
@@ -75,6 +82,8 @@ public class MainActivity extends AppCompatActivity {
     private HashMap<String, String> mIatResults = new LinkedHashMap<>();
 
     private TextUnderstander understander;
+
+    private static final String[] ignorePhrase = { "请", "麻烦", "给", "用" };
 
     private Handler mHandler = new Handler() {
 
@@ -113,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
         SpeechUtility.createUtility(getApplicationContext(), SpeechConstant.APPID + "=573d5744");
         //1.创建RecognizerDialog对象
         mDialog = new RecognizerDialog(this, null);
+        mIat = SpeechRecognizer.createRecognizer(this, null);
         //2.设置accent、 language等参数
         mDialog.setParameter(SpeechConstant.LANGUAGE, "zh_cn");
         mDialog.setParameter(SpeechConstant.ACCENT, "mandarin");
@@ -126,10 +136,8 @@ public class MainActivity extends AppCompatActivity {
         mDialog.setListener(new RecognizerDialogListener() {
             @Override
             public void onResult(RecognizerResult recognizerResult, boolean b) {
-                Log.d("Voice", recognizerResult.getResultString());
+                Log.d("VoiceResult", recognizerResult.getResultString());
                 printResult(recognizerResult);
-                sendMessage(mStartVoiceRecord);
-                understander.understandText(mMsg.getText().toString(), textUnderstanderListener);
             }
 
             @Override
@@ -148,14 +156,47 @@ public class MainActivity extends AppCompatActivity {
         });
         initTTS();
 
+        // 5.初始化语义理解器
         understander = TextUnderstander.createTextUnderstander(this, null);
 
+        // 6.上传联系人列表
+        ContactManager manager = ContactManager.createManager(this, contactListener);
+        manager.asyncQueryAllContactsName();
+
     }
+
+    private ContactManager.ContactListener contactListener = new ContactManager.ContactListener() {
+        @Override
+        public void onContactQueryFinish(String s, boolean b) {
+            //指定引擎类型
+            mIat.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD);
+            mIat.setParameter(SpeechConstant.TEXT_ENCODING, "utf-8");
+            int ret = mIat.updateLexicon("contact", s, new LexiconListener() {
+                @Override
+                public void onLexiconUpdated(String s, SpeechError speechError) {
+                    if(speechError != null){
+                        Log.d("contact",speechError.toString());
+                    }else{
+                        Log.d("contact","上传成功！ ");
+                    }
+                }
+            });
+            if(ret != ErrorCode.SUCCESS){
+                Log.d("Contact","上传联系人失败： " + ret);
+            }
+        }
+    };
 
     private TextUnderstanderListener textUnderstanderListener = new TextUnderstanderListener() {
         @Override
         public void onResult(UnderstanderResult understanderResult) {
             Log.d("Understanding result", understanderResult.getResultString());
+            String person = JsonParser.parseSemanticResult(understanderResult.getResultString());
+            if (person != null) {
+                Log.d("Make call to", person);
+                BaseAction.context = getApplicationContext();
+                CallAction.makeCallTo(person);
+            }
         }
 
         @Override
@@ -224,7 +265,6 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-
         ChatMessage to = new ChatMessage(ChatMessage.Type.OUTPUT, msg);
         to.setDate(new Date());
         mDatas.add(to);
@@ -246,6 +286,13 @@ public class MainActivity extends AppCompatActivity {
 
         new Thread() {
             public void run() {
+                Matcher matcher = CallAction.pattern.matcher(filter(msg));
+                if (matcher.matches()) {
+                    // 理解语义
+                    understander.understandText(msg, textUnderstanderListener);
+                    return;
+                }
+
                 ChatMessage from = null;
                 try {
                     from = HttpUtils.sendMsg(msg);
@@ -272,6 +319,14 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        try {
+            if (sn.equals("2"))
+                return;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
         mIatResults.put(sn, text);
 
         StringBuffer resultBuffer = new StringBuffer();
@@ -281,6 +336,9 @@ public class MainActivity extends AppCompatActivity {
 
         mMsg.setText(resultBuffer.toString());
         mMsg.setSelection(mMsg.length());
+
+        // 发送消息给同小基
+        sendMessage(mStartVoiceRecord);
     }
     /**
      * 创建网络mp3
@@ -298,6 +356,14 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
         return mp;
+    }
+
+    private String filter(String str) {
+        String result = str;
+        for (String s : ignorePhrase) {
+            result = result.replace(s, "");
+        }
+        return result;
     }
 
 }
