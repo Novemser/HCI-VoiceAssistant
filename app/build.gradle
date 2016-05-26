@@ -27,4 +27,5 @@ dependencies {
     compile files('libs/Msc.jar')
     compile files('libs/Sunflower.jar')
     compile files('libs/gson-2.1.jar')
+    compile 'com.android.support:design:23.0.1'
 }

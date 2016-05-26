@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telephony.SmsManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -41,6 +42,7 @@ import com.iflytek.cloud.ui.RecognizerDialogListener;
 import com.iflytek.cloud.util.ContactManager;
 import com.novemser.voicetest.actions.BaseAction;
 import com.novemser.voicetest.actions.CallAction;
+import com.novemser.voicetest.actions.SendSmsAction;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -62,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * 文本域
      */
-    private EditText mMsg;
+    public static EditText mMsg;
     /**
      * 存储聊天消息
      */
@@ -83,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
 
     private TextUnderstander understander;
 
-    private static final String[] ignorePhrase = { "请", "麻烦", "给", "用" };
+    private static final String[] ignorePhrase = {"请", "麻烦", "给", "用"};
 
     private Handler mHandler = new Handler() {
 
@@ -118,6 +120,9 @@ public class MainActivity extends AppCompatActivity {
 
         mAdapter = new ListMessageAdapter(this, mDatas);
         mChatView.setAdapter(mAdapter);
+
+        // 设置全局Context
+        BaseAction.context = getApplicationContext();
 
         SpeechUtility.createUtility(getApplicationContext(), SpeechConstant.APPID + "=573d5744");
         //1.创建RecognizerDialog对象
@@ -154,15 +159,16 @@ public class MainActivity extends AppCompatActivity {
                 mDialog.show();
             }
         });
+
+        // 初始化TTS功能
         initTTS();
 
         // 5.初始化语义理解器
         understander = TextUnderstander.createTextUnderstander(this, null);
 
-        // 6.上传联系人列表
-        ContactManager manager = ContactManager.createManager(this, contactListener);
-        manager.asyncQueryAllContactsName();
-
+        // 6.上传联系人姓名列表
+//        ContactManager manager = ContactManager.createManager(this, contactListener);
+//        manager.asyncQueryAllContactsName();
     }
 
     private ContactManager.ContactListener contactListener = new ContactManager.ContactListener() {
@@ -174,15 +180,15 @@ public class MainActivity extends AppCompatActivity {
             int ret = mIat.updateLexicon("contact", s, new LexiconListener() {
                 @Override
                 public void onLexiconUpdated(String s, SpeechError speechError) {
-                    if(speechError != null){
-                        Log.d("contact",speechError.toString());
-                    }else{
-                        Log.d("contact","上传成功！ ");
+                    if (speechError != null) {
+                        Log.d("contact", speechError.toString());
+                    } else {
+                        Log.d("contact", "上传成功！ ");
                     }
                 }
             });
-            if(ret != ErrorCode.SUCCESS){
-                Log.d("Contact","上传联系人失败： " + ret);
+            if (ret != ErrorCode.SUCCESS) {
+                Log.d("Contact", "上传联系人失败： " + ret);
             }
         }
     };
@@ -191,11 +197,38 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onResult(UnderstanderResult understanderResult) {
             Log.d("Understanding result", understanderResult.getResultString());
-            String person = JsonParser.parseSemanticResult(understanderResult.getResultString());
-            if (person != null) {
-                Log.d("Make call to", person);
-                BaseAction.context = getApplicationContext();
-                CallAction.makeCallTo(person);
+            HashMap map;
+            map = JsonParser.parseSemanticResult(understanderResult.getResultString());
+            if (map != null && map.size() > 0) {
+                if (map.containsKey("operation")) {
+                    String op = (String) map.get("operation");
+                    // 发短信
+                    if (op.equals("SEND")) {
+                        SmsManager manager = SmsManager.getDefault();
+                        if (map.containsKey("code"))
+                            SendSmsAction.sendMessage((String) map.get("code"), (String) map.get("content"), manager);
+                        else if (map.containsKey("name"))
+                            SendSmsAction.sendMessage((String) map.get("name"), (String) map.get("content"), manager);
+                        // 没有指定发送的人/内容
+                        else {
+
+                        }
+                    }
+                    // 打电话
+                    else if (op.equals("CALL")) {
+                        if (map.containsKey("code"))
+                            CallAction.makeCallTo((String) map.get("code"));
+                        else if (map.containsKey("name"))
+                            CallAction.makeCallTo((String) map.get("name"));
+                        // 没有指定打给谁
+                        else {
+
+                        }
+                    }
+                } else {
+                    return;
+                }
+
             }
         }
 
@@ -211,7 +244,6 @@ public class MainActivity extends AppCompatActivity {
         speechSynthesizer.setParameter(SpeechConstant.SPEED, "60");
         speechSynthesizer.setParameter(SpeechConstant.VOLUME, "80");
         speechSynthesizer.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD);
-//        speechSynthesizer.setParameter(SpeechConstant.STREAM_TYPE, "3");
     }
 
     private SynthesizerListener mSynListener = new SynthesizerListener() {
@@ -292,6 +324,13 @@ public class MainActivity extends AppCompatActivity {
                     understander.understandText(msg, textUnderstanderListener);
                     return;
                 }
+                matcher = SendSmsAction.pattern.matcher(filter(msg));
+                if (matcher.matches()) {
+                    // 理解语义
+                    understander.understandText(msg, textUnderstanderListener);
+                    return;
+                }
+
 
                 ChatMessage from = null;
                 try {
@@ -326,7 +365,6 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-
         mIatResults.put(sn, text);
 
         StringBuffer resultBuffer = new StringBuffer();
@@ -340,11 +378,13 @@ public class MainActivity extends AppCompatActivity {
         // 发送消息给同小基
         sendMessage(mStartVoiceRecord);
     }
+
     /**
      * 创建网络mp3
+     *
      * @return
      */
-    public MediaPlayer createNetMp3(String url){
+    public MediaPlayer createNetMp3(String url) {
         MediaPlayer mp = new MediaPlayer();
         try {
             mp.setDataSource(url);

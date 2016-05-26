@@ -65,8 +65,7 @@ public class ListMessageAdapter extends BaseAdapter {
                         .findViewById(R.id.chat_from_content);
                 convertView.setTag(viewHolder);
             } else {
-                convertView = mInflater.inflate(R.layout.main_chat_send_msg,
-                        null);
+                convertView = mInflater.inflate(R.layout.main_chat_send_msg, null);
                 viewHolder.content = (TextView) convertView
                         .findViewById(R.id.chat_send_content);
                 convertView.setTag(viewHolder);

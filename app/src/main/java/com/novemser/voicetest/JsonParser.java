@@ -10,6 +10,9 @@ import org.json.JSONTokener;
 
 import android.util.Log;
 
+import java.sql.SQLClientInfoException;
+import java.util.HashMap;
+
 /**
  * Json结果解析类
  */
@@ -99,25 +102,35 @@ public class JsonParser {
         return ret.toString();
     }
 
-    public static String parseSemanticResult(String json) {
+    public static HashMap parseSemanticResult(String json) {
+        HashMap<String, String> map = new HashMap<>();
         try {
             JSONTokener tokener = new JSONTokener(json);
             JSONObject joResult = new JSONObject(tokener);
 
+            if (joResult.has("operation"))
+                map.put("operation", joResult.getString("operation"));
+            if (joResult.has("message"))
+                map.put("message", joResult.getString("service"));
+
             JSONObject semantic = joResult.getJSONObject("semantic");
             if (semantic.has("slots")) {
                 JSONObject slots = semantic.getJSONObject("slots");
-                if (slots.has("name")) {
-                    return slots.getString("name");
-                } else if (slots.has("code")) {
-                    return slots.getString("code");
-                }
+
+                if (slots.has("code"))
+                    map.put("code", slots.getString("code"));
+
+                if (slots.has("name"))
+                    map.put("name", slots.getString("name"));
+
+                if (slots.has("content"))
+                    map.put("content", slots.getString("content"));
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return null;
+        return map;
     }
 }

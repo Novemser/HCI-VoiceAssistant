@@ -26,36 +26,20 @@ public class CallAction extends BaseAction {
         else
             number = getNumberByName(person);
 
-        if (null != number) {
-            Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + number));
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-            context.startActivity(intent);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private static boolean isPhoneNumber(String number) {
-        return number.matches("^\\d+\\D?$");
-    }
-
-    private static String getNumberByName(String name) {
-        Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_FILTER_URI, name);
-        ContentResolver resolver = context.getContentResolver();
-        Cursor cursor = resolver.query(uri, new String[] { ContactsContract.Contacts._ID }, null, null, null);
-        if ((cursor != null) && (cursor.moveToFirst())) {
-            int idCoulmn = cursor.getColumnIndex(ContactsContract.Contacts._ID);
-            long id = cursor.getLong(idCoulmn);
-            cursor.close();
-            cursor = resolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, new String[] { "data1" }, "contact_id = ?", new String[] { Long.toString(id) }, null);
-            if ((cursor != null) && (cursor.moveToFirst())) {
-                int m = cursor.getColumnIndex("data1");
-                String num = cursor.getString(m);
-                cursor.close();
-                return num;
+        try {
+            if (null != number) {
+                Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + number));
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                context.startActivity(intent);
+                return true;
+            } else {
+                return false;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return null;
+
+        return false;
     }
+
 }
