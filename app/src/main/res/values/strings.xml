@@ -1,3 +1,6 @@
 <resources>
-    <string name="app_name">VoiceTest</string>
+    <string name="app_name">同小基</string>
+    <string name="error_message_content">唔。。同小基需要你把要发送的人、内容都说出来哦~</string>
+    <string name="error_calling_content">唔。。同小基不知道你要打给谁，请再试一试~</string>
+    <string name="intent_recognized_text">好哒，我这就去办~</string>
 </resources>

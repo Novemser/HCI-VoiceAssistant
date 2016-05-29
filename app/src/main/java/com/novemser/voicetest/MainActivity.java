@@ -76,6 +76,8 @@ public class MainActivity extends AppCompatActivity {
     private ListMessageAdapter mAdapter;
     private Button mStartVoiceRecord;
     private SpeechSynthesizer speechSynthesizer;
+    private boolean isContentContainsIntent;
+    private String msg;
 
     // 语音听写对象
     private SpeechRecognizer mIat;
@@ -136,8 +138,8 @@ public class MainActivity extends AppCompatActivity {
         //若要将UI控件用于语义理解，必须添加以下参数设置，设置之后onResult回调返回将是语义理解
         //结果
 
-        // mDialog.setParameter("asr_sch", "1");
-        // mDialog.setParameter("nlp_version", "2.0");
+//         mDialog.setParameter("asr_sch", "1");
+//         mDialog.setParameter("nlp_version", "2.0");
         //3.设置回调接口
         mDialog.setListener(new RecognizerDialogListener() {
             @Override
@@ -208,7 +210,11 @@ public class MainActivity extends AppCompatActivity {
             HashMap map;
             map = JsonParser.parseSemanticResult(understanderResult.getResultString());
             if (map != null && map.size() > 0) {
+                // 如果用户有各种类型的企图
                 if (map.containsKey("operation")) {
+//                    Log.d("Understanding result", "Contains intent:" + isContentContainsIntent);
+                    isContentContainsIntent = true;
+
                     String op = (String) map.get("operation");
                     // 发短信
                     if (op.equals("SEND")) {
@@ -219,8 +225,15 @@ public class MainActivity extends AppCompatActivity {
                             SendSmsAction.sendMessage((String) map.get("name"), (String) map.get("content"), manager);
                         // 没有指定发送的人/内容
                         else {
-
+                            Message message = Message.obtain();
+                            message.obj = new ChatMessage(ChatMessage.Type.INPUT, getString(R.string.error_message_content));
+                            mHandler.sendMessage(message);
+                            return;
                         }
+                        // 发送成功
+                        Message message = Message.obtain();
+                        message.obj = new ChatMessage(ChatMessage.Type.INPUT, getString(R.string.intent_recognized_text));
+                        mHandler.sendMessage(message);
                     }
                     // 打电话
                     else if (op.equals("CALL")) {
@@ -230,11 +243,32 @@ public class MainActivity extends AppCompatActivity {
                             CallAction.makeCallTo((String) map.get("name"));
                         // 没有指定打给谁
                         else {
-
+                            Message message = Message.obtain();
+                            message.obj = new ChatMessage(ChatMessage.Type.INPUT, getString(R.string.error_calling_content));
+                            mHandler.sendMessage(message);
+                            return;
                         }
+                        // 打电话成功
+                        Message message = Message.obtain();
+                        message.obj = new ChatMessage(ChatMessage.Type.INPUT, getString(R.string.intent_recognized_text));
+                        mHandler.sendMessage(message);
                     }
                 } else {
-                    return;
+                    // 如果用户没有各种企图
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            ChatMessage from = null;
+                            try {
+                                from = HttpUtils.sendMsg(msg);
+                            } catch (Exception e) {
+                                from = new ChatMessage(ChatMessage.Type.INPUT, "服务器正在做俯卧撑，估计累趴了~");
+                            }
+                            Message message = Message.obtain();
+                            message.obj = from;
+                            mHandler.sendMessage(message);
+                        }
+                    }.start();
                 }
 
             }
@@ -299,7 +333,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void sendMessage(View view) {
-        final String msg = mMsg.getText().toString();
+        msg = mMsg.getText().toString();
         if (TextUtils.isEmpty(msg)) {
             Toast.makeText(this, "您还没有输入呢，小白看不见的呦~.", Toast.LENGTH_LONG).show();
             return;
@@ -324,33 +358,29 @@ public class MainActivity extends AppCompatActivity {
             // 关闭软键盘，开启方法相同，这个方法是切换开启与关闭状态的
         }
 
-        new Thread() {
-            public void run() {
-                Matcher matcher = CallAction.pattern.matcher(filter(msg));
-                if (matcher.matches()) {
-                    // 理解语义
-                    understander.understandText(msg, textUnderstanderListener);
-                    return;
-                }
-                matcher = SendSmsAction.pattern.matcher(filter(msg));
-                if (matcher.matches()) {
-                    // 理解语义
-                    understander.understandText(msg, textUnderstanderListener);
-                    return;
-                }
+//        new Thread() {
+//            public void run() {
+                understander.understandText(msg, textUnderstanderListener);
 
+//                if (isContentContainsIntent) {
+//                    isContentContainsIntent = false;
+//                    return;
+//                }
+//                Matcher matcher = CallAction.pattern.matcher(filter(msg));
+//                if (matcher.matches()) {
+//                    // 理解语义
+//                    understander.understandText(msg, textUnderstanderListener);
+//                    return;
+//                }
+//                matcher = SendSmsAction.pattern.matcher(filter(msg));
+//                if (matcher.matches()) {
+//                    // 理解语义
+//                    understander.understandText(msg, textUnderstanderListener);
+//                    return;
+//                }
 
-                ChatMessage from = null;
-                try {
-                    from = HttpUtils.sendMsg(msg);
-                } catch (Exception e) {
-                    from = new ChatMessage(ChatMessage.Type.INPUT, "服务器正在做俯卧撑，估计累趴了~");
-                }
-                Message message = Message.obtain();
-                message.obj = from;
-                mHandler.sendMessage(message);
-            }
-        }.start();
+//            }
+//        }.start();
 
     }
 

@@ -108,8 +108,14 @@ public class JsonParser {
             JSONTokener tokener = new JSONTokener(json);
             JSONObject joResult = new JSONObject(tokener);
 
+            if (json == null || json.equals("") || !joResult.has("semantic")) {
+                map.put("semanticNull", "true");
+                return map;
+            }
+
             if (joResult.has("operation"))
                 map.put("operation", joResult.getString("operation"));
+
             if (joResult.has("message"))
                 map.put("message", joResult.getString("service"));
 
