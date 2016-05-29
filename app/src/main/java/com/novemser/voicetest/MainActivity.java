@@ -1,6 +1,7 @@
 package com.novemser.voicetest;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -167,8 +168,14 @@ public class MainActivity extends AppCompatActivity {
         understander = TextUnderstander.createTextUnderstander(this, null);
 
         // 6.上传联系人姓名列表
-//        ContactManager manager = ContactManager.createManager(this, contactListener);
-//        manager.asyncQueryAllContactsName();
+        SharedPreferences sharedPreferences = getSharedPreferences("user", MODE_PRIVATE);
+        
+        if (!sharedPreferences.getBoolean("isContactUploaded", false)) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            ContactManager manager = ContactManager.createManager(this, contactListener);
+            manager.asyncQueryAllContactsName();
+            editor.putBoolean("isContactUploaded", true);
+        }
     }
 
     private ContactManager.ContactListener contactListener = new ContactManager.ContactListener() {
