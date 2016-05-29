@@ -169,12 +169,13 @@ public class MainActivity extends AppCompatActivity {
 
         // 6.上传联系人姓名列表
         SharedPreferences sharedPreferences = getSharedPreferences("user", MODE_PRIVATE);
-        
+
         if (!sharedPreferences.getBoolean("isContactUploaded", false)) {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             ContactManager manager = ContactManager.createManager(this, contactListener);
             manager.asyncQueryAllContactsName();
             editor.putBoolean("isContactUploaded", true);
+            editor.apply();
         }
     }
 
