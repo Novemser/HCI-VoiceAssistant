@@ -262,7 +262,7 @@ public class MainActivity extends AppCompatActivity {
                             try {
                                 from = HttpUtils.sendMsg(msg);
                             } catch (Exception e) {
-                                from = new ChatMessage(ChatMessage.Type.INPUT, "服务器正在做俯卧撑，估计累趴了~");
+                                from = new ChatMessage(ChatMessage.Type.INPUT, "服务器正在做俯卧撑，估计累趴了~囧");
                             }
                             Message message = Message.obtain();
                             message.obj = from;
@@ -280,13 +280,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private void initTTS() {
-        speechSynthesizer = SpeechSynthesizer.createSynthesizer(this, null);
-        speechSynthesizer.setParameter(SpeechConstant.VOICE_NAME, "xiaoqi");
-        speechSynthesizer.setParameter(SpeechConstant.SPEED, "60");
-        speechSynthesizer.setParameter(SpeechConstant.VOLUME, "80");
-        speechSynthesizer.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD);
-    }
 
     private SynthesizerListener mSynListener = new SynthesizerListener() {
         @Override
@@ -324,14 +317,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private void initView() {
-        mChatView = (ListView) findViewById(R.id.id_chat_listView);
-        mMsg = (EditText) findViewById(R.id.id_chat_msg);
-        mStartVoiceRecord = (Button) findViewById(R.id.btn_voice_input);
-        mDatas.add(new ChatMessage(ChatMessage.Type.INPUT,
-                "我是同小基，您的个人助理，我可是我济最帅的语音小助手~"));
-    }
-
     public void sendMessage(View view) {
         msg = mMsg.getText().toString();
         if (TextUtils.isEmpty(msg)) {
@@ -353,35 +338,11 @@ public class MainActivity extends AppCompatActivity {
         // 得到InputMethodManager的实例
         if (imm.isActive()) {
             // 如果开启
-            imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT,
-                    InputMethodManager.HIDE_NOT_ALWAYS);
+            imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_NOT_ALWAYS);
             // 关闭软键盘，开启方法相同，这个方法是切换开启与关闭状态的
         }
 
-//        new Thread() {
-//            public void run() {
-                understander.understandText(msg, textUnderstanderListener);
-
-//                if (isContentContainsIntent) {
-//                    isContentContainsIntent = false;
-//                    return;
-//                }
-//                Matcher matcher = CallAction.pattern.matcher(filter(msg));
-//                if (matcher.matches()) {
-//                    // 理解语义
-//                    understander.understandText(msg, textUnderstanderListener);
-//                    return;
-//                }
-//                matcher = SendSmsAction.pattern.matcher(filter(msg));
-//                if (matcher.matches()) {
-//                    // 理解语义
-//                    understander.understandText(msg, textUnderstanderListener);
-//                    return;
-//                }
-
-//            }
-//        }.start();
-
+        understander.understandText(msg, textUnderstanderListener);
     }
 
     private void printResult(RecognizerResult results) {
@@ -442,6 +403,22 @@ public class MainActivity extends AppCompatActivity {
             result = result.replace(s, "");
         }
         return result;
+    }
+
+    private void initTTS() {
+        speechSynthesizer = SpeechSynthesizer.createSynthesizer(this, null);
+        speechSynthesizer.setParameter(SpeechConstant.VOICE_NAME, "xiaoqi");
+        speechSynthesizer.setParameter(SpeechConstant.SPEED, "60");
+        speechSynthesizer.setParameter(SpeechConstant.VOLUME, "80");
+        speechSynthesizer.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD);
+    }
+
+    private void initView() {
+        mChatView = (ListView) findViewById(R.id.id_chat_listView);
+        mMsg = (EditText) findViewById(R.id.id_chat_msg);
+        mStartVoiceRecord = (Button) findViewById(R.id.btn_voice_input);
+        mDatas.add(new ChatMessage(ChatMessage.Type.INPUT,
+                "我是同小基，您的个人助理，我可是我济最帅的语音小助手~"));
     }
 
 }
