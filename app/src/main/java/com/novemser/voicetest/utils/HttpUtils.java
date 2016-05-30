@@ -1,4 +1,4 @@
-package com.novemser.voicetest;
+package com.novemser.voicetest.utils;
 
 /**
  * Created by Novemser on 5/22/2016.
@@ -13,6 +13,8 @@ import java.net.URLEncoder;
 import java.util.Date;
 
 import com.google.gson.Gson;
+import com.novemser.voicetest.ChatMessage;
+import com.novemser.voicetest.Result;
 
 
 public class HttpUtils {
