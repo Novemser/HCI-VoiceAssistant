@@ -1,6 +1,14 @@
 <resources>
     <string name="app_name">同小基</string>
+    <string name="intro_text">我是同小基，您的个人助理，我可是我济最帅的语音小助手喵~</string>
     <string name="error_message_content">唔。。同小基需要你把要发送的人、内容都说出来哦~</string>
     <string name="error_calling_content">唔。。同小基不知道你要打给谁，请再试一试~</string>
     <string name="intent_recognized_text">好哒，我这就去办~</string>
+    <string name="title_activity_template">TemplateActivity</string>
+    <string name="title_toolbar">和同小基的对话</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
 </resources>

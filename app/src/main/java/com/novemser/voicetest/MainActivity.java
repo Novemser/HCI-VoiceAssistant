@@ -8,11 +8,17 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.telephony.SmsManager;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -57,7 +63,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     /**
      * 展示消息的listview
      */
@@ -115,9 +121,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.main_chatting);
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_template);
 
         initView();
 
@@ -179,6 +185,22 @@ public class MainActivity extends AppCompatActivity {
             editor.putBoolean("isContactUploaded", true);
             editor.apply();
         }
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle(getString(R.string.title_toolbar));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            toolbar.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+        }
+        setSupportActionBar(toolbar);
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
     }
 
     private ContactManager.ContactListener contactListener = new ContactManager.ContactListener() {
@@ -279,7 +301,6 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
-
 
     private SynthesizerListener mSynListener = new SynthesizerListener() {
         @Override
@@ -418,7 +439,30 @@ public class MainActivity extends AppCompatActivity {
         mMsg = (EditText) findViewById(R.id.id_chat_msg);
         mStartVoiceRecord = (Button) findViewById(R.id.btn_voice_input);
         mDatas.add(new ChatMessage(ChatMessage.Type.INPUT,
-                "我是同小基，您的个人助理，我可是我济最帅的语音小助手~"));
+                getString(R.string.intro_text)));
     }
 
+    @Override
+    public boolean onNavigationItemSelected(MenuItem menuItem) {
+        // Handle navigation view item clicks here.
+        int id = menuItem.getItemId();
+
+        if (id == R.id.nav_camera) {
+            // Handle the camera action
+        } else if (id == R.id.nav_gallery) {
+
+        } else if (id == R.id.nav_slideshow) {
+
+        } else if (id == R.id.nav_manage) {
+
+        } else if (id == R.id.nav_share) {
+
+        } else if (id == R.id.nav_send) {
+
+        }
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
 }
