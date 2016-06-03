@@ -13,7 +13,8 @@ public class AlarmActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        SharedPreferences sharedPreferences = getSharedPreferences("user", MODE_PRIVATE);
+//        SharedPreferences sharedPreferences = getSharedPreferences("user", MODE_PRIVATE);
+        
         new AlertDialog.Builder(AlarmActivity.this).setTitle("提醒")
                 .setMessage("闹钟响了")
                 .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
