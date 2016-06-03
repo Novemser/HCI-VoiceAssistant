@@ -1,13 +1,22 @@
 package com.novemser.voicetest;
 
+import android.app.AlarmManager;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
+import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Contacts;
+import android.provider.MediaStore;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -46,6 +55,7 @@ import com.novemser.voicetest.actions.BaseAction;
 import com.novemser.voicetest.actions.CallAction;
 import com.novemser.voicetest.actions.SendSmsAction;
 import com.novemser.voicetest.utils.AlarmActivity;
+import com.novemser.voicetest.utils.AlarmReceiver;
 import com.novemser.voicetest.utils.HttpUtils;
 import com.novemser.voicetest.utils.JsonParser;
 
@@ -55,6 +65,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -81,6 +92,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private SpeechSynthesizer speechSynthesizer;
     private boolean isContentContainsIntent;
     private String msg;
+    private PackageManager packageManager;
+    private List<ResolveInfo> resolveInfoList;
 
     // 语音听写对象
     private SpeechRecognizer mIat;
@@ -126,6 +139,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         mAdapter = new ListMessageAdapter(this, mDatas);
         mChatView.setAdapter(mAdapter);
+        packageManager = getPackageManager();
 
         // 设置全局Context
         BaseAction.context = getApplicationContext();
@@ -133,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         SpeechUtility.createUtility(getApplicationContext(), SpeechConstant.APPID + "=573d5744");
         //1.创建RecognizerDialog对象
         mDialog = new RecognizerDialog(this, null);
-        mIat = SpeechRecognizer.createRecognizer(this, null);
+        mIat = SpeechRecognizer.createRecognizer(getApplicationContext(), null);
         //2.设置accent、 language等参数
         mDialog.setParameter(SpeechConstant.LANGUAGE, "zh_cn");
         mDialog.setParameter(SpeechConstant.ACCENT, "mandarin");
@@ -198,6 +212,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        new Thread(new Runnable() {
+            /**
+             * 检查系统应用程序，添加到应用列表中
+             */
+            @Override
+            public void run() {
+                //应用过滤条件
+                Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+                mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                resolveInfoList = packageManager.queryIntentActivities(mainIntent, 0);
+                //按报名排序
+                Collections.sort(resolveInfoList, new ResolveInfo.DisplayNameComparator(packageManager));
+                for (ResolveInfo res : resolveInfoList) {
+                    String pkg = res.activityInfo.packageName;
+                    String cls = res.activityInfo.name;
+                    String name = res.loadLabel(packageManager).toString();
+                    Log.d("ApplicationInfo:", "Pkg:" + pkg + "   Class:" + cls+"   Name:" + name);
+                }
+            }
+        }).start();
     }
 
     private ContactManager.ContactListener contactListener = new ContactManager.ContactListener() {
@@ -231,7 +266,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (map != null && map.size() > 0) {
                 // 如果用户有各种类型的企图
                 if (map.containsKey("operation")) {
-//                    Log.d("Understanding result", "Contains intent:" + isContentContainsIntent);
                     isContentContainsIntent = true;
 
                     String op = (String) map.get("operation");
@@ -242,7 +276,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             SendSmsAction.sendMessage((String) map.get("code"), (String) map.get("content"), manager);
                         else if (map.containsKey("name"))
                             SendSmsAction.sendMessage((String) map.get("name"), (String) map.get("content"), manager);
-                        // 没有指定发送的人/内容
+                            // 没有指定发送的人/内容
                         else {
                             Message message = Message.obtain();
                             message.obj = new ChatMessage(ChatMessage.Type.INPUT, getString(R.string.error_message_content));
@@ -260,7 +294,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             CallAction.makeCallTo((String) map.get("code"));
                         else if (map.containsKey("name"))
                             CallAction.makeCallTo((String) map.get("name"));
-                        // 没有指定打给谁
+                            // 没有指定打给谁
                         else {
                             Message message = Message.obtain();
                             message.obj = new ChatMessage(ChatMessage.Type.INPUT, getString(R.string.error_calling_content));
@@ -274,18 +308,93 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     }
                     // 设置提醒/闹钟
                     else if (op.equals("CREATE")) {
-                        Intent intent = new Intent(MainActivity.this, AlarmActivity.class);
-                        PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, 0, intent, 0);
                         Calendar calendar = Calendar.getInstance();
                         calendar.setTimeInMillis(System.currentTimeMillis());
-                        
+                        if (map.containsKey("date") && map.containsKey("time")) {
+                            try {
+                                // 用户设置了具体的时间
+                                String dateRaw = (String) map.get("date");
+                                String[] dateStr = dateRaw.split("-");
+                                int[] date = new int[3];
+                                for (int i = 0; i < 3; i++)
+                                    date[i] = Integer.parseInt(dateStr[i]);
+                                // 注意，date的月份是0-11
+                                calendar.set(date[0], date[1] - 1, date[2]);
+
+                                String timeRaw = (String) map.get("time");
+                                String[] timeStr = timeRaw.split(":");
+                                int[] time = new int[3];
+                                for (int i = 0; i < 3; i++)
+                                    time[i] = Integer.parseInt(timeStr[i]);
+                                calendar.set(Calendar.HOUR_OF_DAY, time[0]);
+                                calendar.set(Calendar.MINUTE, time[1]);
+                                calendar.set(Calendar.SECOND, time[2]);
+                                Log.d("TimeSetFr", String.valueOf(System.currentTimeMillis()));
+                                Log.d("TimeSetTo", String.valueOf(calendar.getTimeInMillis()));
+                                // 设置闹钟
+                                Intent intent = new Intent(MainActivity.this, AlarmActivity.class);
+                                PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, 0, intent, 0);
+                                AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+                                alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+
+                                // 设置成功
+                                Message message = Message.obtain();
+                                message.obj = new ChatMessage(ChatMessage.Type.INPUT, getString(R.string.intent_recognized_text));
+                                mHandler.sendMessage(message);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    // 打开应用
+                    else if (op.equals("LAUNCH")) {
+                        if (map.containsKey("name")) {
+                            String name = (String) map.get("name");
+
+                            if (name.contains("相机")) {
+                                Log.d("picture", "照相");
+                                Intent intent = new Intent("android.media.action.STILL_IMAGE_CAMERA"); //调用照相机
+                                startActivity(intent);
+                                return;
+                            }
+                            if (name.contains("录音机")) {
+                                Intent mi = new Intent(MediaStore.Audio.Media.RECORD_SOUND_ACTION);
+                                startActivity(mi);
+                                return;
+                            }
+                            if (name.contains("联系人") || name.contains("通讯录")) {
+                                Intent intent = new Intent();
+                                intent.setAction(Intent.ACTION_VIEW);
+                                intent.setData(Contacts.People.CONTENT_URI);
+                                startActivity(intent);
+                                return;
+                            }
+                            if (name.contains("地图")) {
+                                //显示地图:
+                                Uri uri = Uri.parse("geo:");
+                                Intent it = new Intent(Intent.ACTION_VIEW, uri);
+                                startActivity(it);
+                                return;
+                            }
+                            for (ResolveInfo res : resolveInfoList) {
+                                String pkg = res.activityInfo.packageName;
+                                String cls = res.activityInfo.name;
+                                String appName = res.loadLabel(packageManager).toString();
+                                if (appName.contains(name)) {
+                                    ComponentName component = new ComponentName(pkg, cls);
+                                    Intent i = new Intent();
+                                    i.setComponent(component);
+                                    startActivity(i);
+                                }
+                            }
+                        }
                     }
                 } else {
                     // 如果用户没有各种企图
                     new Thread() {
                         @Override
                         public void run() {
-                            ChatMessage from = null;
+                            ChatMessage from;
                             try {
                                 from = HttpUtils.sendMsg(msg);
                             } catch (Exception e) {
@@ -423,14 +532,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return mp;
     }
 
-    private String filter(String str) {
-        String result = str;
-        for (String s : ignorePhrase) {
-            result = result.replace(s, "");
-        }
-        return result;
-    }
-
     private void initTTS() {
         speechSynthesizer = SpeechSynthesizer.createSynthesizer(this, null);
         speechSynthesizer.setParameter(SpeechConstant.VOICE_NAME, "xiaoqi");
@@ -452,17 +553,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Handle navigation view item clicks here.
         int id = menuItem.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
+        if (id == R.id.nav_alarm) {
 
         }
 
@@ -470,4 +561,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+    public static EditText getmMsg() {
+        return mMsg;
+    }
+
 }

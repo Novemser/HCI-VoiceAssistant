@@ -131,6 +131,22 @@ public class JsonParser {
 
                 if (slots.has("content"))
                     map.put("content", slots.getString("content"));
+
+                if (slots.has("datetime")) {
+                    JSONObject dateTime = slots.getJSONObject("datetime");
+
+                    if (dateTime.has("dateOrig"))
+                        map.put("dateOrig", dateTime.getString("dateOrig"));
+
+                    if (dateTime.has("time"))
+                        map.put("time", dateTime.getString("time"));
+
+                    if (dateTime.has("timeOrig"))
+                        map.put("timeOrig", dateTime.getString("timeOrig"));
+
+                    if (dateTime.has("date"))
+                        map.put("date", dateTime.getString("date"));
+                }
             }
 
         } catch (Exception e) {

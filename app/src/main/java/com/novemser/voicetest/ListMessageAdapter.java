@@ -54,7 +54,7 @@ public class ListMessageAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         ChatMessage chatMessage = mDatas.get(position);
 
-        ViewHolder viewHolder = null;
+        ViewHolder viewHolder;
 
         if (convertView == null) {
             viewHolder = new ViewHolder();
