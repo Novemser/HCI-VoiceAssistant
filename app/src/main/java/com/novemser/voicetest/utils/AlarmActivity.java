@@ -2,7 +2,6 @@ package com.novemser.voicetest.utils;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
@@ -14,7 +13,7 @@ public class AlarmActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 //        SharedPreferences sharedPreferences = getSharedPreferences("user", MODE_PRIVATE);
-        
+
         new AlertDialog.Builder(AlarmActivity.this).setTitle("提醒")
                 .setMessage("闹钟响了")
                 .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
