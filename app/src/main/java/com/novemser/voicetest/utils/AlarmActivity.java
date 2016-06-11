@@ -41,7 +41,6 @@ public class AlarmActivity extends AppCompatActivity {
             }
         }
         
-
         database.delete("alarm", "_id = ?", new String[] {String.valueOf(_id)});
 
         new AlertDialog.Builder(AlarmActivity.this).setTitle("提醒")
