@@ -10,6 +10,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -51,6 +54,7 @@ import com.iflytek.cloud.UnderstanderResult;
 import com.iflytek.cloud.ui.RecognizerDialog;
 import com.iflytek.cloud.ui.RecognizerDialogListener;
 import com.iflytek.cloud.util.ContactManager;
+import com.novemser.voicetest.actions.AlarmListsActivity;
 import com.novemser.voicetest.actions.BaseAction;
 import com.novemser.voicetest.actions.CallAction;
 import com.novemser.voicetest.actions.SendSmsAction;
@@ -94,6 +98,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private String msg;
     private PackageManager packageManager;
     private List<ResolveInfo> resolveInfoList;
+    public static SQLiteDatabase db;
 
     // 语音听写对象
     private SpeechRecognizer mIat;
@@ -136,6 +141,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setContentView(R.layout.activity_template);
 
         initView();
+        //打开或创建test.db数据库
+        db = openOrCreateDatabase("alarm.db", Context.MODE_PRIVATE, null);
 
         mAdapter = new ListMessageAdapter(this, mDatas);
         mChatView.setAdapter(mAdapter);
@@ -336,7 +343,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, 0, intent, 0);
                                 AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
                                 alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
-
+                                try {
+                                    insertDate(db, (String) map.get("content"), calendar.getTimeInMillis());
+                                } catch (SQLiteException e) {
+                                    db.execSQL("create table alarm(_id integer primary key autoincrement," +
+                                            " content varchar(255)," +
+                                            " time BIGINT)");
+                                    insertDate(db, (String) map.get("content"), calendar.getTimeInMillis());
+                                }
                                 // 设置成功
                                 Message message = Message.obtain();
                                 message.obj = new ChatMessage(ChatMessage.Type.INPUT, getString(R.string.intent_recognized_text));
@@ -416,6 +430,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     };
 
+    private void insertDate(SQLiteDatabase database, String content, Long time) {
+        database.execSQL("insert into alarm values(null, ?, ?)", new String[] {content, String.valueOf(time)});
+    }
+
     private SynthesizerListener mSynListener = new SynthesizerListener() {
         @Override
         public void onSpeakBegin() {
@@ -452,10 +470,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     };
 
+    @Override
+    protected void onDestroy() {
+        db.close();
+        super.onDestroy();
+    }
+
     public void sendMessage(View view) {
         msg = mMsg.getText().toString();
         if (TextUtils.isEmpty(msg)) {
-            Toast.makeText(this, "您还没有输入呢，小白看不见的呦~.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "您还没有输入呢，同小基看不见的呦~.", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -554,7 +578,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         int id = menuItem.getItemId();
 
         if (id == R.id.nav_alarm) {
-
+            Intent intent = new Intent(MainActivity.this, AlarmListsActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getApplicationContext().startActivity(intent);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
