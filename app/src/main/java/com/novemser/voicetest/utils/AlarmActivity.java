@@ -40,6 +40,7 @@ public class AlarmActivity extends AppCompatActivity {
                 _id = id;
             }
         }
+        
 
         database.delete("alarm", "_id = ?", new String[] {String.valueOf(_id)});
 
