@@ -37,7 +37,7 @@ public class AlarmListsActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "乌拉拉~", Snackbar.LENGTH_LONG)
+                Snackbar.make(view, "乌拉拉~点我没用的~", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
