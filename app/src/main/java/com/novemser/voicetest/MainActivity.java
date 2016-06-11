@@ -1,16 +1,13 @@
 package com.novemser.voicetest;
 
 import android.app.AlarmManager;
-import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.ComponentName;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.media.MediaPlayer;
@@ -108,8 +105,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private HashMap<String, String> mIatResults = new LinkedHashMap<>();
 
     private TextUnderstander understander;
-
-    private static final String[] ignorePhrase = {"请", "麻烦", "给", "用"};
 
     private Handler mHandler = new Handler() {
 
