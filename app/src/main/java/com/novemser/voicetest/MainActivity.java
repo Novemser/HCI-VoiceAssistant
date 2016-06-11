@@ -114,17 +114,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mAdapter.notifyDataSetChanged();
             mChatView.setSelection(mDatas.size() - 1);
             speechSynthesizer.startSpeaking(from.getMsg(), mSynListener);
-            // Google TTS cannot be used!!!
-//            s = "http://translate.google.cn/translate_tts?ie=UTF-8&q=%E6%88%91%E5%8B%92%E4%B8%AA%E5%8E%BB&tl=zh-CN&total=1&idx=0&textlen=4&tk=743200.877443&client=t&prev=input&ttsspeed=2.24";
-//            MediaPlayer mediaPlayer = new MediaPlayer();
-//            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-//            try {
-//                mediaPlayer.setDataSource(s);
-//                mediaPlayer.prepare(); // might take long! (for buffering, etc)
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//            mediaPlayer.start();
         }
 
     };
