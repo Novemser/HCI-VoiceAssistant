@@ -5,23 +5,17 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SwitchCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.ScaleAnimation;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
-import com.daimajia.androidanimations.library.Techniques;
-import com.daimajia.androidanimations.library.YoYo;
 import com.novemser.voicetest.MainActivity;
 import com.novemser.voicetest.R;
 import com.novemser.voicetest.utils.AlarmItemSetting;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 /**
