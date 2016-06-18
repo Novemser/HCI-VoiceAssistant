@@ -2,9 +2,8 @@ package com.novemser.voicetest.actions;
 
 import android.support.design.widget.Snackbar;
 import android.telephony.SmsManager;
-import android.widget.Toast;
 
-import com.novemser.voicetest.MainActivity;
+import com.novemser.voicetest.ui.MainActivity;
 
 import java.util.ArrayList;
 import java.util.regex.Pattern;

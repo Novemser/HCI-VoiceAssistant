@@ -9,7 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 
-import com.novemser.voicetest.MainActivity;
+import com.novemser.voicetest.ui.MainActivity;
 import com.novemser.voicetest.R;
 import com.novemser.voicetest.adapters.AlarmItemAdapter;
 import com.novemser.voicetest.utils.AlarmItemSetting;
@@ -28,14 +28,18 @@ public class AlarmListsActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         SQLiteDatabase database = MainActivity.db;
         List<AlarmItemSetting> itemSettings = new ArrayList<>();
+        try {
 
-        Cursor cursor = database.rawQuery("select * from alarm", null);
-        while (cursor.moveToNext()) {
-            String content = cursor.getString(cursor.getColumnIndex("content"));
-            String longStr = cursor.getString(cursor.getColumnIndex("time"));
-            AlarmItemSetting itemSetting = new AlarmItemSetting(content, new Date(Long.parseLong(longStr)));
-            itemSettings.add(itemSetting);
-            Log.d("DBInfo", " " + content + " " + longStr);
+            Cursor cursor = database.rawQuery("select * from alarm", null);
+            while (cursor.moveToNext()) {
+                String content = cursor.getString(cursor.getColumnIndex("content"));
+                String longStr = cursor.getString(cursor.getColumnIndex("time"));
+                AlarmItemSetting itemSetting = new AlarmItemSetting(content, new Date(Long.parseLong(longStr)));
+                itemSettings.add(itemSetting);
+                Log.d("DBInfo", " " + content + " " + longStr);
+            }
+        } catch (Exception e) {
+            return;
         }
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.rvContacts);

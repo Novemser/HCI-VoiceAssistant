@@ -1,4 +1,4 @@
-package com.novemser.voicetest;
+package com.novemser.voicetest.utils;
 
 /**
  * Created by Novemser on 5/22/2016.

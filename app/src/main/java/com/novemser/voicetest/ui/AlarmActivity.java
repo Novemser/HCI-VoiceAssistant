@@ -1,4 +1,4 @@
-package com.novemser.voicetest.utils;
+package com.novemser.voicetest.ui;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -10,8 +10,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
-import java.util.Calendar;
-import java.util.Date;
+import com.novemser.voicetest.R;
 
 /**
  * Created by Novemser on 5/30/2016.
@@ -28,6 +27,7 @@ public class AlarmActivity extends AppCompatActivity {
         Cursor cursor = database.rawQuery("select * from alarm", null);
         long currentTime = System.currentTimeMillis();
         long gap = currentTime;
+        boolean hasAlarm = false;
 
         while (cursor.moveToNext()) {
             int id = cursor.getInt(cursor.getColumnIndex("_id"));
@@ -39,15 +39,31 @@ public class AlarmActivity extends AppCompatActivity {
                 exact = time;
                 _id = id;
             }
+            Log.d("FuckAlarm", String.valueOf(Math.abs(time - currentTime)));
+            if (Math.abs(time - currentTime) < 60000) {
+                hasAlarm = true;
+            }
+        }
+        // 如果根本不存在闹钟
+        if (!hasAlarm) {
+            finish();
+            return;
         }
 
-        database.delete("alarm", "_id = ?", new String[] {String.valueOf(_id)});
-
+        database.delete("alarm", "_id = ?", new String[]{String.valueOf(_id)});
+        final MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.bird);
+        try {
+            mediaPlayer.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         new AlertDialog.Builder(AlarmActivity.this).setTitle("提醒")
                 .setMessage(text)
                 .setPositiveButton("知道啦", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        mediaPlayer.stop();
+                        mediaPlayer.release();
                         AlarmActivity.this.finish();
                     }
                 }).show();

@@ -13,8 +13,6 @@ import java.net.URLEncoder;
 import java.util.Date;
 
 import com.google.gson.Gson;
-import com.novemser.voicetest.ChatMessage;
-import com.novemser.voicetest.Result;
 
 
 public class HttpUtils {

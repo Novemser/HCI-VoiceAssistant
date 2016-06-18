@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
-import com.novemser.voicetest.MainActivity;
+import com.novemser.voicetest.ui.MainActivity;
 import com.novemser.voicetest.R;
 import com.novemser.voicetest.utils.AlarmItemSetting;
 
@@ -60,19 +60,19 @@ public class AlarmItemAdapter extends RecyclerView.Adapter<AlarmItemAdapter.View
                 if (!isChecked) {
                     while (cursor.moveToNext()) {
                         int id = cursor.getInt(cursor.getColumnIndex("_id"));
-//                        String longStr = cursor.getString(cursor.getColumnIndex("time"));
                         String contentStr = cursor.getString(cursor.getColumnIndex("content"));
-//                        Log.d("DBRemove", "TargetId:" + id + " Position:" + position);
-//                        Log.d("DBRemove", "TargetId:" + id + " " + content.getText() + " " + contentStr);
-//                        Log.d("DBRemove", time.getText() + " " + longStr);
                         if (contentStr.equals(content.getText())) {
                             database.delete("alarm", "_id = ?", new String[]{String.valueOf(id)});
                             break;
                         }
                     }
-                    notifyItemRemoved(position);
-                    itemSettings.remove(position);
-//                    YoYo.with(Techniques.FadeOut).duration(618).playOn(holder.itemView);
+                    try {
+                        itemSettings.remove(position);
+                        notifyItemRemoved(position);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
                 }
             }
         });

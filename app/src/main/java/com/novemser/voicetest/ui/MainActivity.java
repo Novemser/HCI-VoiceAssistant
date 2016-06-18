@@ -1,4 +1,4 @@
-package com.novemser.voicetest;
+package com.novemser.voicetest.ui;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -51,12 +51,13 @@ import com.iflytek.cloud.UnderstanderResult;
 import com.iflytek.cloud.ui.RecognizerDialog;
 import com.iflytek.cloud.ui.RecognizerDialogListener;
 import com.iflytek.cloud.util.ContactManager;
+import com.novemser.voicetest.utils.ChatMessage;
+import com.novemser.voicetest.adapters.ListMessageAdapter;
+import com.novemser.voicetest.R;
 import com.novemser.voicetest.actions.AlarmListsActivity;
 import com.novemser.voicetest.actions.BaseAction;
 import com.novemser.voicetest.actions.CallAction;
 import com.novemser.voicetest.actions.SendSmsAction;
-import com.novemser.voicetest.utils.AlarmActivity;
-import com.novemser.voicetest.utils.AlarmReceiver;
 import com.novemser.voicetest.utils.HttpUtils;
 import com.novemser.voicetest.utils.JsonParser;
 
@@ -324,7 +325,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 Log.d("TimeSetTo", String.valueOf(calendar.getTimeInMillis()));
                                 // 设置闹钟
                                 Intent intent = new Intent(MainActivity.this, AlarmActivity.class);
-                                PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, 0, intent, 0);
+                                Log.d("FuckIntent", String.valueOf((calendar.getTimeInMillis() % 500)));
+                                PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, (int) (calendar.getTimeInMillis() % 500), intent, 0);
                                 AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
                                 alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
                                 try {

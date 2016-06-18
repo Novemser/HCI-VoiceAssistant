@@ -1,4 +1,4 @@
-package com.novemser.voicetest;
+package com.novemser.voicetest.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -6,6 +6,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
+
+import com.novemser.voicetest.utils.ChatMessage;
+import com.novemser.voicetest.R;
 
 import java.util.List;
 
