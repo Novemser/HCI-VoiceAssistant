@@ -1,18 +1,18 @@
 /*******************************************************************************
  * Copyright (c) <2016> <Novemser>
- *
+ * <p/>
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
- *  files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
- *  merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
+ * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * <p/>
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- *
+ * <p/>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
  * LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- *  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- *  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  ******************************************************************************/
 
 package com.novemser.voicetest.ui;
@@ -42,6 +42,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.telephony.SmsManager;
+import android.text.Html;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
@@ -68,8 +70,11 @@ import com.iflytek.cloud.UnderstanderResult;
 import com.iflytek.cloud.ui.RecognizerDialog;
 import com.iflytek.cloud.ui.RecognizerDialogListener;
 import com.iflytek.cloud.util.ContactManager;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.novemser.voicetest.handlers.Call;
 import com.novemser.voicetest.handlers.LaunchApp;
+import com.novemser.voicetest.handlers.NewsHandler;
 import com.novemser.voicetest.handlers.Notification;
 import com.novemser.voicetest.handlers.SendMsg;
 import com.novemser.voicetest.utils.ChatMessage;
@@ -81,6 +86,7 @@ import com.novemser.voicetest.actions.CallAction;
 import com.novemser.voicetest.actions.SendSmsAction;
 import com.novemser.voicetest.utils.HttpUtils;
 import com.novemser.voicetest.utils.JsonParser;
+import com.novemser.voicetest.utils.NewsResult;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -93,6 +99,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+
+import cz.msebera.android.httpclient.Header;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     /**
@@ -135,7 +143,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mDatas.add(from);
             mAdapter.notifyDataSetChanged();
             mChatView.setSelection(mDatas.size() - 1);
-            speechSynthesizer.startSpeaking(from.getMsg(), mSynListener);
+            if (from.getSpannedMsg() == null)
+                speechSynthesizer.startSpeaking(from.getMsg().toString(), mSynListener);
         }
 
     };
@@ -242,7 +251,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     String pkg = res.activityInfo.packageName;
                     String cls = res.activityInfo.name;
                     String name = res.loadLabel(packageManager).toString();
-                    Log.d("ApplicationInfo:", "Pkg:" + pkg + "   Class:" + cls+"   Name:" + name);
+                    Log.d("ApplicationInfo:", "Pkg:" + pkg + "   Class:" + cls + "   Name:" + name);
                 }
             }
         }).start();
@@ -271,6 +280,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     };
 
     private TextUnderstanderListener textUnderstanderListener = new TextUnderstanderListener() {
+        AsyncHttpClient client = new AsyncHttpClient();
+
         @Override
         public void onResult(UnderstanderResult understanderResult) {
             Log.d("Understanding result", understanderResult.getResultString());
@@ -302,22 +313,59 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         LaunchApp launchApp = new LaunchApp();
                         launchApp.doCMD(map, getApplicationContext(), packageManager, resolveInfoList);
                     }
-                } else {
-                    // 如果用户没有各种企图
-                    new Thread() {
-                        @Override
-                        public void run() {
-                            ChatMessage from;
-                            try {
-                                from = HttpUtils.sendMsg(msg);
-                            } catch (Exception e) {
-                                from = new ChatMessage(ChatMessage.Type.INPUT, "服务器正在做俯卧撑，估计累趴了~囧");
-                            }
-                            Message message = Message.obtain();
-                            message.obj = from;
-                            mHandler.sendMessage(message);
+                }
+                // 如果用户没有各种被讯飞拦截的企图
+                else {
+                    // 如果想看通知
+                    if (msg.contains("通知")) {
+                        // TODO:Implementation
+                        if (msg.contains("软件")) {
+                            NewsHandler.doCMD("http://139.129.34.152:8000/jsondata/sse/10", client, mHandler);
                         }
-                    }.start();
+                        if (msg.contains("电信")) {
+                            NewsHandler.doCMD("http://139.129.34.152:8000/jsondata/see/10", client, mHandler);
+                        }
+                        if (msg.contains("经管")) {
+                            NewsHandler.doCMD("http://139.129.34.152:8000/jsondata/sem/10", client, mHandler);
+                        }
+                        if (msg.contains("设计") || msg.contains("创意")) {
+                            NewsHandler.doCMD("http://139.129.34.152:8000/jsondata/tjdi/10", client, mHandler);
+                        }
+                        if (msg.contains("土木")) {
+                            NewsHandler.doCMD("http://139.129.34.152:8000/jsondata/clivileng/10", client, mHandler);
+                        }
+                        if (msg.contains("汽车")) {
+                            
+                        }
+                        if (msg.contains("交通")) {
+                            NewsHandler.doCMD("http://139.129.34.152:8000/jsondata/tjjt/10", client, mHandler);
+                        }
+                        if (msg.contains("生命")) {
+                            NewsHandler.doCMD("http://139.129.34.152:8000/jsondata/life/10", client, mHandler);
+                        }
+                        if (msg.contains("外国语")) {
+
+                        }
+                        if (msg.contains("测绘") || msg.contains("地理")) {
+
+                        }
+                    } else {
+                        // 其他交给图灵机器人处理
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                ChatMessage from;
+                                try {
+                                    from = HttpUtils.sendMsg(msg);
+                                } catch (Exception e) {
+                                    from = new ChatMessage(ChatMessage.Type.INPUT, "服务器正在做俯卧撑，估计累趴了~囧");
+                                }
+                                Message message = Message.obtain();
+                                message.obj = from;
+                                mHandler.sendMessage(message);
+                            }
+                        }.start();
+                    }
                 }
 
             }

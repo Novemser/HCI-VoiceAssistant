@@ -1,5 +1,8 @@
 package com.novemser.voicetest.utils;
 
+import android.text.SpannableString;
+import android.text.Spanned;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -17,6 +20,7 @@ public class ChatMessage {
      * 消息内容
      */
     private String msg;
+    private Spanned spannedMsg;
     /**
      * 日期
      */
@@ -44,12 +48,23 @@ public class ChatMessage {
         setDate(new Date());
     }
 
+    public ChatMessage(Type type, Spanned msg) {
+        super();
+        this.type = type;
+        this.spannedMsg = msg;
+        setDate(new Date());
+    }
+
     public String getDateStr() {
         return dateStr;
     }
 
     public Date getDate() {
         return date;
+    }
+
+    public Spanned getSpannedMsg() {
+        return spannedMsg;
     }
 
     public void setDate(Date date) {
@@ -74,8 +89,10 @@ public class ChatMessage {
         this.type = type;
     }
 
-    public String getMsg() {
-        return msg;
+    public Spanned getMsg() {
+        if (spannedMsg == null)
+            return new SpannableString(msg);
+        return spannedMsg;
     }
 
     public void setMsg(String msg) {

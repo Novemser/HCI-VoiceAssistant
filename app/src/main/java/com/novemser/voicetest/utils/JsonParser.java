@@ -28,12 +28,33 @@ import org.json.JSONTokener;
 import android.util.Log;
 
 import java.sql.SQLClientInfoException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
  * Json结果解析类
  */
 public class JsonParser {
+
+    public static ArrayList<NewsResult> parseNewsInfo(String json) {
+        ArrayList<NewsResult> results = new ArrayList<>();
+        try {
+            JSONTokener tokener = new JSONTokener(json);
+            JSONArray array = (JSONArray) tokener.nextValue();
+            int len = array.length();
+            for (int i = 0; i < len; i++) {
+                JSONObject object = array.getJSONObject(i);
+
+                results.add(new NewsResult(object.getString("url"),
+                        object.getString("title"),
+                        object.getString("time")));
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return results;
+    }
 
     public static String parseIatResult(String json) {
         StringBuffer ret = new StringBuffer();

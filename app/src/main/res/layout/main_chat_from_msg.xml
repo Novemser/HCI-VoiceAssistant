@@ -25,6 +25,7 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center_vertical"
+            android:textColorLink="@android:color/holo_blue_bright"
             android:lineSpacingExtra="2dp"
             android:minHeight="50dp"
             android:textColor="#ffffff"

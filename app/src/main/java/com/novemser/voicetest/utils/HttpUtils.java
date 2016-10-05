@@ -31,7 +31,6 @@ import java.util.Date;
 
 import com.google.gson.Gson;
 
-
 public class HttpUtils {
     private static String API_KEY = "f62cbfc920a863f4e0c26659ad937a4e";
     private static String URL = "http://www.tuling123.com/openapi/api";
@@ -82,7 +81,7 @@ public class HttpUtils {
      * @param urlStr
      * @return
      */
-    private static String doGet(String urlStr) {
+    public static String doGet(String urlStr) {
         URL url = null;
         HttpURLConnection conn = null;
         InputStream is = null;
