@@ -68,6 +68,10 @@ import com.iflytek.cloud.UnderstanderResult;
 import com.iflytek.cloud.ui.RecognizerDialog;
 import com.iflytek.cloud.ui.RecognizerDialogListener;
 import com.iflytek.cloud.util.ContactManager;
+import com.novemser.voicetest.handlers.Call;
+import com.novemser.voicetest.handlers.LaunchApp;
+import com.novemser.voicetest.handlers.Notification;
+import com.novemser.voicetest.handlers.SendMsg;
 import com.novemser.voicetest.utils.ChatMessage;
 import com.novemser.voicetest.adapters.ListMessageAdapter;
 import com.novemser.voicetest.R;
@@ -280,131 +284,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     String op = (String) map.get("operation");
                     // 发短信
                     if (op.equals("SEND")) {
-                        SmsManager manager = SmsManager.getDefault();
-                        if (map.containsKey("code"))
-                            SendSmsAction.sendMessage((String) map.get("code"), (String) map.get("content"), manager);
-                        else if (map.containsKey("name"))
-                            SendSmsAction.sendMessage((String) map.get("name"), (String) map.get("content"), manager);
-                            // 没有指定发送的人/内容
-                        else {
-                            Message message = Message.obtain();
-                            message.obj = new ChatMessage(ChatMessage.Type.INPUT, getString(R.string.error_message_content));
-                            mHandler.sendMessage(message);
-                            return;
-                        }
-                        // 发送成功
-                        Message message = Message.obtain();
-                        message.obj = new ChatMessage(ChatMessage.Type.INPUT, getString(R.string.intent_recognized_text));
-                        mHandler.sendMessage(message);
+                        SendMsg sendMsg = new SendMsg();
+                        sendMsg.doCMD(map, mHandler, getApplicationContext());
                     }
                     // 打电话
                     else if (op.equals("CALL")) {
-                        if (map.containsKey("code"))
-                            CallAction.makeCallTo((String) map.get("code"));
-                        else if (map.containsKey("name"))
-                            CallAction.makeCallTo((String) map.get("name"));
-                            // 没有指定打给谁
-                        else {
-                            Message message = Message.obtain();
-                            message.obj = new ChatMessage(ChatMessage.Type.INPUT, getString(R.string.error_calling_content));
-                            mHandler.sendMessage(message);
-                            return;
-                        }
-                        // 打电话成功
-                        Message message = Message.obtain();
-                        message.obj = new ChatMessage(ChatMessage.Type.INPUT, getString(R.string.intent_recognized_text));
-                        mHandler.sendMessage(message);
+                        Call call = new Call();
+                        call.doCMD(map, mHandler, getApplicationContext());
                     }
                     // 设置提醒/闹钟
                     else if (op.equals("CREATE")) {
-                        Calendar calendar = Calendar.getInstance();
-                        calendar.setTimeInMillis(System.currentTimeMillis());
-                        if (map.containsKey("date") && map.containsKey("time")) {
-                            try {
-                                // 用户设置了具体的时间
-                                String dateRaw = (String) map.get("date");
-                                String[] dateStr = dateRaw.split("-");
-                                int[] date = new int[3];
-                                for (int i = 0; i < 3; i++)
-                                    date[i] = Integer.parseInt(dateStr[i]);
-                                // 注意，date的月份是0-11
-                                calendar.set(date[0], date[1] - 1, date[2]);
-
-                                String timeRaw = (String) map.get("time");
-                                String[] timeStr = timeRaw.split(":");
-                                int[] time = new int[3];
-                                for (int i = 0; i < 3; i++)
-                                    time[i] = Integer.parseInt(timeStr[i]);
-                                calendar.set(Calendar.HOUR_OF_DAY, time[0]);
-                                calendar.set(Calendar.MINUTE, time[1]);
-                                calendar.set(Calendar.SECOND, time[2]);
-                                Log.d("TimeSetFr", String.valueOf(System.currentTimeMillis()));
-                                Log.d("TimeSetTo", String.valueOf(calendar.getTimeInMillis()));
-                                // 设置闹钟
-                                Intent intent = new Intent(MainActivity.this, AlarmActivity.class);
-                                Log.d("FuckIntent", String.valueOf((calendar.getTimeInMillis() % 500)));
-                                PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, (int) (calendar.getTimeInMillis() % 500), intent, 0);
-                                AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-                                alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
-                                try {
-                                    insertDate(db, (String) map.get("content"), calendar.getTimeInMillis());
-                                } catch (SQLiteException e) {
-                                    db.execSQL("create table alarm(_id integer primary key autoincrement," +
-                                            " content varchar(255)," +
-                                            " time BIGINT)");
-                                    insertDate(db, (String) map.get("content"), calendar.getTimeInMillis());
-                                }
-                                // 设置成功
-                                Message message = Message.obtain();
-                                message.obj = new ChatMessage(ChatMessage.Type.INPUT, getString(R.string.intent_recognized_text));
-                                mHandler.sendMessage(message);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
+                        Notification notification = new Notification();
+                        notification.doCMD(map, mHandler, getApplicationContext(), db);
                     }
                     // 打开应用
                     else if (op.equals("LAUNCH")) {
-                        if (map.containsKey("name")) {
-                            String name = (String) map.get("name");
-
-                            if (name.contains("相机")) {
-                                Log.d("picture", "照相");
-                                Intent intent = new Intent("android.media.action.STILL_IMAGE_CAMERA"); //调用照相机
-                                startActivity(intent);
-                                return;
-                            }
-                            if (name.contains("录音机")) {
-                                Intent mi = new Intent(MediaStore.Audio.Media.RECORD_SOUND_ACTION);
-                                startActivity(mi);
-                                return;
-                            }
-                            if (name.contains("联系人") || name.contains("通讯录")) {
-                                Intent intent = new Intent();
-                                intent.setAction(Intent.ACTION_VIEW);
-                                intent.setData(Contacts.People.CONTENT_URI);
-                                startActivity(intent);
-                                return;
-                            }
-                            if (name.contains("地图")) {
-                                //显示地图:
-                                Uri uri = Uri.parse("geo:");
-                                Intent it = new Intent(Intent.ACTION_VIEW, uri);
-                                startActivity(it);
-                                return;
-                            }
-                            for (ResolveInfo res : resolveInfoList) {
-                                String pkg = res.activityInfo.packageName;
-                                String cls = res.activityInfo.name;
-                                String appName = res.loadLabel(packageManager).toString();
-                                if (appName.contains(name)) {
-                                    ComponentName component = new ComponentName(pkg, cls);
-                                    Intent i = new Intent();
-                                    i.setComponent(component);
-                                    startActivity(i);
-                                }
-                            }
-                        }
+                        LaunchApp launchApp = new LaunchApp();
+                        launchApp.doCMD(map, getApplicationContext(), packageManager, resolveInfoList);
                     }
                 } else {
                     // 如果用户没有各种企图
@@ -433,9 +329,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     };
 
-    private void insertDate(SQLiteDatabase database, String content, Long time) {
-        database.execSQL("insert into alarm values(null, ?, ?)", new String[] {content, String.valueOf(time)});
-    }
+//    private void insertDate(SQLiteDatabase database, String content, Long time) {
+//        database.execSQL("insert into alarm values(null, ?, ?)", new String[] {content, String.valueOf(time)});
+//    }
 
     private SynthesizerListener mSynListener = new SynthesizerListener() {
         @Override
