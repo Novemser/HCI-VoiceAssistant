@@ -26,6 +26,7 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.widget.TextView;
 
 import com.novemser.voicetest.R;
 
@@ -56,11 +57,11 @@ public class AlarmActivity extends AppCompatActivity {
                 exact = time;
                 _id = id;
             }
-            Log.d("FuckAlarm", String.valueOf(Math.abs(time - currentTime)));
             if (Math.abs(time - currentTime) < 60000) {
                 hasAlarm = true;
             }
         }
+        TextView noAlarm = (TextView) findViewById(R.id.tv_has_alarm);
         // 如果根本不存在闹钟
         if (!hasAlarm) {
             finish();

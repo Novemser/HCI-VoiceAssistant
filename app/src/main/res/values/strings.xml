@@ -12,4 +12,6 @@
 
     <string name="action_settings">Settings</string>
     <string name="title_activity_alarm">AlarmActivity</string>
+
+    <string name="noAlarmText">还没有闹钟，\n快去找同小基添加吧~</string>
 </resources>

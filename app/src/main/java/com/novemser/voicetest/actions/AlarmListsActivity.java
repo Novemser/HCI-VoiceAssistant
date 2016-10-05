@@ -25,6 +25,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 
 import com.novemser.voicetest.ui.MainActivity;
 import com.novemser.voicetest.R;
@@ -41,9 +43,12 @@ public class AlarmListsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_alarm);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        TextView textView = (TextView) findViewById(R.id.tv_has_alarm);
+
         toolbar.setTitle("闹钟");
         setSupportActionBar(toolbar);
         SQLiteDatabase database = MainActivity.db;
+
         List<AlarmItemSetting> itemSettings = new ArrayList<>();
         try {
 
@@ -58,6 +63,10 @@ public class AlarmListsActivity extends AppCompatActivity {
         } catch (Exception e) {
             return;
         }
+        if (itemSettings.size() > 0)
+            textView.setVisibility(View.GONE);
+        else
+            textView.setVisibility(View.VISIBLE);
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.rvContacts);
         recyclerView.setAdapter(new AlarmItemAdapter(itemSettings));
