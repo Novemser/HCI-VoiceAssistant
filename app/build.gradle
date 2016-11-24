@@ -30,4 +30,5 @@ dependencies {
     compile files('libs/gson-2.1.jar')
     compile 'com.android.support:design:23.1.1'
     compile 'com.android.support:recyclerview-v7:23.2.1'
+    compile 'com.github.nkzawa:socket.io-client:0.3.0'
 }

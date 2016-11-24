@@ -11,7 +11,12 @@ import com.novemser.voicetest.utils.ChatMessage;
 import com.novemser.voicetest.utils.JsonParser;
 import com.novemser.voicetest.utils.NewsResult;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 
 import cz.msebera.android.httpclient.Header;
 
@@ -25,6 +30,21 @@ public class NewsHandler {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 ArrayList<NewsResult> results = JsonParser.parseNewsInfo(new String(responseBody));
+                Collections.sort(results, new Comparator<NewsResult>() {
+                    @Override
+                    public int compare(NewsResult lhs, NewsResult rhs) {
+                        SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd");
+
+                        try {
+                            Date time1 = parser.parse(lhs.time);
+                            Date time2 = parser.parse(rhs.time);
+                            return time1.compareTo(time2);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                        return 0;
+                    }
+                });
                 // 设置成功
                 for (NewsResult result : results) {
                     Message message = Message.obtain();

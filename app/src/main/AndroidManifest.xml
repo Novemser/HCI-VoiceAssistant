@@ -45,7 +45,7 @@
         </activity>
         <activity
             android:name=".ui.AlarmActivity"
-            android:theme="@style/Theme.AppCompat.Dialog"></activity>
+            android:theme="@style/Theme.AppCompat.Dialog" />
 
         <receiver
             android:name=".utils.AlarmReceiver"
@@ -54,7 +54,8 @@
         <activity
             android:name=".actions.AlarmListsActivity"
             android:label="@string/title_activity_alarm"
-            android:theme="@style/AppTheme"></activity>
+            android:theme="@style/AppTheme" />
+        <activity android:name=".ui.VoiceRecActivity" />
     </application>
 
 </manifest>

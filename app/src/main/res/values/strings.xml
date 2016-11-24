@@ -1,11 +1,11 @@
 <resources>
-    <string name="app_name">同小基</string>
-    <string name="intro_text">我是同小基，您的个人助理，我可是我济最帅的语音小助手喵~</string>
-    <string name="error_message_content">唔。。同小基需要你把要发送的人、内容都说出来哦~</string>
-    <string name="error_calling_content">唔。。同小基不知道你要打给谁，请再试一试~</string>
-    <string name="intent_recognized_text">好哒，我这就去办~</string>
+    <string name="app_name">同小济</string>
+    <string name="intro_text">我是同小济，您的个人助理，我能帮你很多忙哦，试试用语音和我聊天吧~</string>
+    <string name="error_message_content">唔。。同小济需要你把要发送的人、内容都说出来哦~</string>
+    <string name="error_calling_content">唔。。同小济不知道你要打给谁，请再试一试~</string>
+    <string name="intent_recognized_text">好的，我这就去办~</string>
     <string name="title_activity_template">TemplateActivity</string>
-    <string name="title_toolbar">和同小基的对话</string>
+    <string name="title_toolbar">和同小济的对话</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -13,5 +13,17 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_alarm">AlarmActivity</string>
 
-    <string name="noAlarmText">还没有闹钟，\n快去找同小基添加吧~</string>
+    <string name="noAlarmText">还没有闹钟，\n快去找同小济添加吧~</string>
+    <string name="noTextWarning">您还没有输入呢~试试用语音和我聊天吧~</string>
+    <!-- 听写 -->
+    <string name="text_begin">请开始说话…</string>
+    <string name="text_begin_recognizer">开始音频流识别</string>
+    <string name="text_upload_contacts">上传联系人</string>
+    <string name="text_upload_userwords">上传用户词表</string>
+    <string name="text_upload_success">上传成功</string>
+    <string name="text_userword_empty">词表下载失败或内容为空</string>
+    <string name="text_download_success">下载成功</string>
+    <string name="pref_key_iat_show">iat_show</string>
+    <string name="pref_title_iat_show">显示听写界面</string>
+    <string name="pref_title_iat_dwa">结果动态修正</string>
 </resources>

@@ -17,33 +17,23 @@
 
 package com.novemser.voicetest.ui;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.Contacts;
-import android.provider.MediaStore;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.telephony.SmsManager;
-import android.text.Html;
-import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
@@ -71,36 +61,29 @@ import com.iflytek.cloud.ui.RecognizerDialog;
 import com.iflytek.cloud.ui.RecognizerDialogListener;
 import com.iflytek.cloud.util.ContactManager;
 import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.novemser.voicetest.R;
+import com.novemser.voicetest.actions.AlarmListsActivity;
+import com.novemser.voicetest.actions.BaseAction;
+import com.novemser.voicetest.adapters.ListMessageAdapter;
 import com.novemser.voicetest.handlers.Call;
 import com.novemser.voicetest.handlers.LaunchApp;
 import com.novemser.voicetest.handlers.NewsHandler;
 import com.novemser.voicetest.handlers.Notification;
 import com.novemser.voicetest.handlers.SendMsg;
 import com.novemser.voicetest.utils.ChatMessage;
-import com.novemser.voicetest.adapters.ListMessageAdapter;
-import com.novemser.voicetest.R;
-import com.novemser.voicetest.actions.AlarmListsActivity;
-import com.novemser.voicetest.actions.BaseAction;
-import com.novemser.voicetest.actions.CallAction;
-import com.novemser.voicetest.actions.SendSmsAction;
 import com.novemser.voicetest.utils.HttpUtils;
 import com.novemser.voicetest.utils.JsonParser;
-import com.novemser.voicetest.utils.NewsResult;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-
-import cz.msebera.android.httpclient.Header;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     /**
@@ -335,7 +318,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             NewsHandler.doCMD("http://139.129.34.152:8000/jsondata/clivileng/10", client, mHandler);
                         }
                         if (msg.contains("汽车")) {
-                            
+
                         }
                         if (msg.contains("交通")) {
                             NewsHandler.doCMD("http://139.129.34.152:8000/jsondata/tjjt/10", client, mHandler);
@@ -346,8 +329,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         if (msg.contains("外国语")) {
 
                         }
+                        if (msg.contains("材料")) {
+                            NewsHandler.doCMD("http://139.129.34.152:8000/jsondata/smse/10", client, mHandler);
+                        }
+                        if (msg.contains("环境")) {
+                            NewsHandler.doCMD("http://139.129.34.152:8000/jsondata/sese/10", client, mHandler);
+                        }
                         if (msg.contains("测绘") || msg.contains("地理")) {
-
+                            NewsHandler.doCMD("http://139.129.34.152:8000/jsondata/celiang/10", client, mHandler);
                         }
                     } else {
                         // 其他交给图灵机器人处理
@@ -426,7 +415,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void sendMessage(View view) {
         msg = mMsg.getText().toString();
         if (TextUtils.isEmpty(msg)) {
-            Toast.makeText(this, "您还没有输入呢，同小基看不见的呦~.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getResources().getText(R.string.noTextWarning), Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -480,7 +469,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mMsg.setText(resultBuffer.toString());
         mMsg.setSelection(mMsg.length());
 
-        // 发送消息给同小基
+        // 发送消息给同小济
         sendMessage(mStartVoiceRecord);
     }
 
@@ -526,6 +515,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         if (id == R.id.nav_alarm) {
             Intent intent = new Intent(MainActivity.this, AlarmListsActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getApplicationContext().startActivity(intent);
+        } else if (id == R.id.listen) {
+            Intent intent = new Intent(MainActivity.this, VoiceRecActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             getApplicationContext().startActivity(intent);
         }
