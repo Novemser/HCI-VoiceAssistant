@@ -28,6 +28,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -45,6 +47,14 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataEvent;
+import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.Wearable;
 import com.iflytek.cloud.ErrorCode;
 import com.iflytek.cloud.LexiconListener;
 import com.iflytek.cloud.RecognizerResult;
@@ -85,7 +95,10 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
+        DataApi.DataListener,
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener{
     /**
      * 展示消息的listview
      */
@@ -238,6 +251,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             }
         }).start();
+
+        // 和手表交互数据
+        mGoogleApiClient= new GoogleApiClient.Builder(this)
+                .addApi(Wearable.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Wearable.DataApi.removeListener(mGoogleApiClient, this);
+        mGoogleApiClient.disconnect();
     }
 
     private ContactManager.ContactListener contactListener = new ContactManager.ContactListener() {
@@ -528,8 +561,46 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
+    private GoogleApiClient mGoogleApiClient ;
+
     public static EditText getmMsg() {
         return mMsg;
     }
 
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        Wearable.DataApi.addListener(mGoogleApiClient, this);
+        Log.e("onConnected", "onConnected:" + bundle);
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.e("onConnectionSuspended", "onConnectionSuspended:" + i );
+    }
+
+    private static final String CONTENT_NAME = "content";
+    private static final String DATA_PATH = "/wear_data";
+
+    @Override
+    public void onDataChanged(DataEventBuffer dataEventBuffer) {
+        Log.e("From phone:", "Start");
+        for (DataEvent event : dataEventBuffer) {
+            if (event.getType() == DataEvent.TYPE_DELETED) {
+            } else if (event.getType() == DataEvent.TYPE_CHANGED) {
+                DataMap dataMap= DataMapItem.fromDataItem(event.getDataItem()).getDataMap();
+                if(event.getDataItem().getUri().getPath().equals(DATA_PATH)){
+                    String content=dataMap.get(CONTENT_NAME);
+                    Log.e("From phone:", content);
+                }
+
+            }
+        }
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.e("onConnectionFailed", connectionResult.toString());
+    }
 }

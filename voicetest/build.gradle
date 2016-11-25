@@ -6,7 +6,7 @@ android {
     buildToolsVersion "24.0.3"
 
     defaultConfig {
-        applicationId "com.novemser.voicereco"
+        applicationId "com.novemser.voicetest"
         minSdkVersion 21
         targetSdkVersion 23
         versionCode 1
@@ -23,5 +23,9 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.google.android.support:wearable:1.4.0'
-    compile 'com.google.android.gms:play-services-wearable:9.6.1'
+    compile 'com.google.android.gms:play-services-wearable:8.4.0'
+
+    compile ('io.socket:socket.io-client:0.8.1') {
+        exclude group: 'org.json', module: 'json'
+    }
 }

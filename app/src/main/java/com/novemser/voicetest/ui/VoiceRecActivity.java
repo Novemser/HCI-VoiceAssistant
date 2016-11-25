@@ -9,9 +9,10 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.EditText;
-import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.github.nkzawa.emitter.Emitter;
+import com.github.nkzawa.socketio.client.Socket;
 import com.iflytek.cloud.ErrorCode;
 import com.iflytek.cloud.InitListener;
 import com.iflytek.cloud.RecognizerListener;
@@ -24,6 +25,7 @@ import com.iflytek.cloud.ui.RecognizerDialog;
 import com.iflytek.cloud.ui.RecognizerDialogListener;
 import com.iflytek.sunflower.FlowerCollector;
 import com.novemser.voicetest.R;
+import com.novemser.voicetest.utils.Global;
 import com.novemser.voicetest.utils.JsonParser;
 
 import org.json.JSONException;
@@ -48,6 +50,9 @@ public class VoiceRecActivity extends AppCompatActivity implements View.OnClickL
     private SharedPreferences mSharedPreferences;
     // 引擎类型
     private String mEngineType = SpeechConstant.TYPE_CLOUD;
+    private Socket mSocket;
+
+    private final String socketMsg = "chat message";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,7 +70,34 @@ public class VoiceRecActivity extends AppCompatActivity implements View.OnClickL
                 Activity.MODE_PRIVATE);
         mToast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
         mResultText = ((EditText) findViewById(R.id.iat_text));
+
+        mSocket = Global.getSocket();
+        mSocket.on(socketMsg, onLogin);
+//        attemptLogin();
     }
+
+
+
+    private void attemptLogin() {
+        mSocket.emit("add user", "Nova");
+    }
+
+    private Emitter.Listener onLogin = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            Log.e(this.getClass().getName(), "Login succeed");
+//            JSONObject data = (JSONObject) args[0];
+//
+//            int numUsers;
+//            try {
+//                numUsers = data.getInt("numUsers");
+//                System.out.println(numUsers);
+//            } catch (JSONException e) {
+//                return;
+//            }
+        }
+    };
+
     /**
      * 初始化Layout。
      */
@@ -75,56 +107,6 @@ public class VoiceRecActivity extends AppCompatActivity implements View.OnClickL
         findViewById(R.id.iat_upload_userwords).setOnClickListener(VoiceRecActivity.this);
         findViewById(R.id.iat_stop).setOnClickListener(VoiceRecActivity.this);
         findViewById(R.id.iat_cancel).setOnClickListener(VoiceRecActivity.this);
-//        findViewById(R.id.image_iat_set).setOnClickListener(VoiceRecActivity.this);
-        // 选择云端or本地
-        RadioGroup group = (RadioGroup) findViewById(R.id.radioGroup);
-        group.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                switch (checkedId) {
-//                    case R.id.iatRadioCloud:
-//                        mEngineType = SpeechConstant.TYPE_CLOUD;
-//                        findViewById(R.id.iat_upload_contacts).setEnabled(true);
-//                        findViewById(R.id.iat_upload_userwords).setEnabled(true);
-//                        break;
-//                    case R.id.iatRadioLocal:
-//                        mEngineType = SpeechConstant.TYPE_LOCAL;
-//                        findViewById(R.id.iat_upload_contacts).setEnabled(false);
-//                        findViewById(R.id.iat_upload_userwords).setEnabled(false);
-//                        /**
-//                         * 选择本地听写 判断是否安装语记,未安装则跳转到提示安装页面
-//                         */
-//                        if (!SpeechUtility.getUtility().checkServiceInstalled()) {
-//                            mInstaller.install();
-//                        } else {
-//                            String result = FucUtil.checkLocalResource();
-//                            if (!TextUtils.isEmpty(result)) {
-//                                showTip(result);
-//                            }
-//                        }
-//                        break;
-//                    case R.id.iatRadioMix:
-//                        mEngineType = SpeechConstant.TYPE_MIX;
-//                        findViewById(R.id.iat_upload_contacts).setEnabled(false);
-//                        findViewById(R.id.iat_upload_userwords).setEnabled(false);
-//                        /**
-//                         * 选择本地听写 判断是否安装语记,未安装则跳转到提示安装页面
-//                         */
-//                        if (!SpeechUtility.getUtility().checkServiceInstalled()) {
-//                            mInstaller.install();
-//                        } else {
-//                            String result = FucUtil.checkLocalResource();
-//                            if (!TextUtils.isEmpty(result)) {
-//                                showTip(result);
-//                            }
-//                        }
-//                        break;
-                    default:
-                        break;
-                }
-            }
-        });
     }
 
     int ret = 0; // 函数调用返回值
@@ -196,6 +178,7 @@ public class VoiceRecActivity extends AppCompatActivity implements View.OnClickL
                 break;
         }
     }
+
     /**
      * 初始化监听器。
      */
@@ -265,7 +248,7 @@ public class VoiceRecActivity extends AppCompatActivity implements View.OnClickL
         @Override
         public void onVolumeChanged(int volume, byte[] data) {
             showTip("当前正在说话，音量大小：" + volume);
-            Log.d(TAG, "返回音频数据："+data.length);
+            Log.d(TAG, "返回音频数据：" + data.length);
         }
 
         @Override
@@ -316,14 +299,16 @@ public class VoiceRecActivity extends AppCompatActivity implements View.OnClickL
         }
 
         mIatResults.put(sn, text);
-
+        resultBuffer = new StringBuffer();
         for (String key : mIatResults.keySet()) {
             resultBuffer.append(mIatResults.get(key));
         }
 
         mResultText.setText(resultBuffer.toString());
+        mSocket.emit(socketMsg, resultBuffer.toString());
         mResultText.setSelection(mResultText.length());
     }
+
     /**
      * 参数设置
      */
@@ -359,8 +344,8 @@ public class VoiceRecActivity extends AppCompatActivity implements View.OnClickL
 
         // 设置音频保存路径，保存音频格式支持pcm、wav，设置路径为sd卡请注意WRITE_EXTERNAL_STORAGE权限
         // 注：AUDIO_FORMAT参数语记需要更新版本才能生效
-        mIat.setParameter(SpeechConstant.AUDIO_FORMAT,"wav");
-        mIat.setParameter(SpeechConstant.ASR_AUDIO_PATH, Environment.getExternalStorageDirectory()+"/msc/iat.wav");
+        mIat.setParameter(SpeechConstant.AUDIO_FORMAT, "wav");
+        mIat.setParameter(SpeechConstant.ASR_AUDIO_PATH, Environment.getExternalStorageDirectory() + "/msc/iat.wav");
     }
 
     private void showTip(final String str) {
@@ -374,5 +359,6 @@ public class VoiceRecActivity extends AppCompatActivity implements View.OnClickL
         // 退出时释放连接
         mIat.cancel();
         mIat.destroy();
+        mSocket.off(socketMsg, onLogin);
     }
 }

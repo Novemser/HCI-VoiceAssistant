@@ -20,16 +20,35 @@ package com.novemser.voicetest.utils;
 import android.app.Application;
 import android.content.Context;
 
+import com.github.nkzawa.socketio.client.IO;
+import com.github.nkzawa.socketio.client.Socket;
+
+import java.net.URISyntaxException;
+
 /**
  * Created by Novemser on 6/3/2016.
  */
 public class Global extends Application {
     private static Context context;
 
+    private static Socket mSocket;
+    static {
+        try {
+            mSocket = IO.socket(Constants.CHAT_SERVER_URL);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Socket getSocket() {
+        return mSocket;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
         context = getApplicationContext();
+        mSocket.connect();
     }
 
     public static Context getGlobalContext() {
