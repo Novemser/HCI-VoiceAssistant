@@ -22,7 +22,6 @@ import com.iflytek.cloud.SpeechError;
 import com.iflytek.cloud.SpeechRecognizer;
 import com.iflytek.cloud.SpeechUtility;
 import com.iflytek.cloud.ui.RecognizerDialog;
-import com.iflytek.cloud.ui.RecognizerDialogListener;
 import com.iflytek.sunflower.FlowerCollector;
 import com.novemser.voicetest.R;
 import com.novemser.voicetest.utils.Global;
@@ -106,7 +105,6 @@ public class VoiceRecActivity extends AppCompatActivity implements View.OnClickL
         findViewById(R.id.iat_upload_contacts).setOnClickListener(VoiceRecActivity.this);
         findViewById(R.id.iat_upload_userwords).setOnClickListener(VoiceRecActivity.this);
         findViewById(R.id.iat_stop).setOnClickListener(VoiceRecActivity.this);
-        findViewById(R.id.iat_cancel).setOnClickListener(VoiceRecActivity.this);
     }
 
     int ret = 0; // 函数调用返回值
@@ -131,10 +129,10 @@ public class VoiceRecActivity extends AppCompatActivity implements View.OnClickL
                 setParam();
                 boolean isShowDialog = false;
                 if (isShowDialog) {
-                    // 显示听写对话框
-                    mIatDialog.setListener(mRecognizerDialogListener);
-                    mIatDialog.show();
-                    showTip(getString(R.string.text_begin));
+//                    // 显示听写对话框
+//                    mIatDialog.setListener(mRecognizerDialogListener);
+//                    mIatDialog.show();
+//                    showTip(getString(R.string.text_begin));
                 } else {
                     // 不显示听写对话框
                     ret = mIat.startListening(mRecognizerListener);
@@ -147,14 +145,14 @@ public class VoiceRecActivity extends AppCompatActivity implements View.OnClickL
                 break;
             // 停止听写
             case R.id.iat_stop:
-                mIat.stopListening();
+                mIat.cancel();
                 showTip("停止听写");
                 break;
-            // 取消听写
-            case R.id.iat_cancel:
-                mIat.cancel();
-                showTip("取消听写");
-                break;
+//            // 取消听写
+//            case R.id.iat_cancel:
+//                mIat.cancel();
+//                showTip("取消听写");
+//                break;
 //            // 上传联系人
 //            case R.id.iat_upload_contacts:
 //                showTip(getString(R.string.text_upload_contacts));
@@ -225,13 +223,13 @@ public class VoiceRecActivity extends AppCompatActivity implements View.OnClickL
             // 错误码：10118(您没有说话)，可能是录音机权限被禁，需要提示用户打开应用的录音权限。
             // 如果使用本地功能（语记）需要提示用户开启语记的录音权限。
             showTip(error.getPlainDescription(true));
+            mIat.startListening(mRecognizerListener);
         }
 
         @Override
         public void onEndOfSpeech() {
             // 此回调表示：检测到了语音的尾端点，已经进入识别过程，不再接受语音输入
-            mIat.startListening(mRecognizerListener);
-            showTip("结束说话");
+//            showTip("结束说话");
 
         }
 
@@ -240,8 +238,12 @@ public class VoiceRecActivity extends AppCompatActivity implements View.OnClickL
             Log.e("Is Last " + isLast, results.getResultString());
             printResult(results);
 
+            // 最后的结果
             if (isLast) {
-                // TODO 最后的结果
+                Log.e(getClass().getName(), resultBuffer.toString());
+                // 发送消息
+                mSocket.emit(socketMsg, resultBuffer.toString());
+                mIat.startListening(mRecognizerListener);
             }
         }
 
@@ -262,22 +264,22 @@ public class VoiceRecActivity extends AppCompatActivity implements View.OnClickL
         }
     };
 
-    /**
-     * 听写UI监听器
-     */
-    private RecognizerDialogListener mRecognizerDialogListener = new RecognizerDialogListener() {
-        public void onResult(RecognizerResult results, boolean isLast) {
-            printResult(results);
-        }
-
-        /**
-         * 识别回调错误.
-         */
-        public void onError(SpeechError error) {
-            showTip(error.getPlainDescription(true));
-        }
-
-    };
+//    /**
+//     * 听写UI监听器
+//     */
+//    private RecognizerDialogListener mRecognizerDialogListener = new RecognizerDialogListener() {
+//        public void onResult(RecognizerResult results, boolean isLast) {
+//            printResult(results);
+//        }
+//
+//        /**
+//         * 识别回调错误.
+//         */
+//        public void onError(SpeechError error) {
+//            showTip(error.getPlainDescription(true));
+//        }
+//
+//    };
 
     private void printResult(RecognizerResult results) {
         String text = JsonParser.parseIatResult(results.getResultString());
@@ -291,13 +293,6 @@ public class VoiceRecActivity extends AppCompatActivity implements View.OnClickL
             e.printStackTrace();
         }
 
-        try {
-            if (sn.equals("2"))
-                return;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         mIatResults.put(sn, text);
         resultBuffer = new StringBuffer();
         for (String key : mIatResults.keySet()) {
@@ -305,7 +300,6 @@ public class VoiceRecActivity extends AppCompatActivity implements View.OnClickL
         }
 
         mResultText.setText(resultBuffer.toString());
-        mSocket.emit(socketMsg, resultBuffer.toString());
         mResultText.setSelection(mResultText.length());
     }
 
